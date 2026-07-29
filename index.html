@@ -168,6 +168,49 @@
     display:none;
   }
   body.in-game #cursor{ display:block; }
+
+  /* ---- [추가] 민첩도 테스트: 스포트라이트/화살표 ---- */
+  #agility-spotlight{
+    position:fixed; border-radius:50%; transform:translate(-50%,-50%);
+    box-shadow:0 0 0 9999px rgba(0,0,0,0.82);
+    pointer-events:none; z-index:70; opacity:0; transition:opacity .15s ease;
+  }
+  #agility-spotlight.show{ opacity:1; }
+  #agility-arrow{
+    position:fixed; transform:translate(-50%,0);
+    font-size:clamp(28px,4vw,44px); pointer-events:none; z-index:80;
+    opacity:0; transition:opacity .15s ease;
+    animation:agilityBounce .6s ease-in-out infinite;
+    filter:drop-shadow(0 0 6px #fff);
+  }
+  #agility-arrow.show{ opacity:1; }
+  @keyframes agilityBounce{
+    0%,100%{ transform:translate(-50%,0); }
+    50%{ transform:translate(-50%,10px); }
+  }
+
+  /* ---- [추가] 민첩도 테스트 결과 화면 ---- */
+  #agility-final-score{
+    font-size:clamp(60px,14vw,160px); font-weight:900; color:#fff;
+    text-shadow:0 0 20px var(--purple),4px 4px 0 rgba(0,0,0,0.15);
+    animation:popCount .6s ease;
+  }
+  #agility-nickname-form{ display:flex; gap:1vw; align-items:center; justify-content:center; margin-bottom:2vh; }
+  #agility-nickname-input{
+    font-family:inherit; font-size:clamp(14px,1.8vw,18px); padding:1vh 1.5vw;
+    border-radius:999px; border:2px solid var(--purple); cursor:auto;
+  }
+  #agility-rank-text{ font-size:clamp(18px,2.6vw,28px); color:var(--ink); font-weight:800; margin:1vh 0 2vh; }
+  #agility-rank-table{ background:rgba(255,255,255,0.85); border-radius:18px; padding:2vh 3vw; max-width:420px; width:90vw; }
+  #agility-rank-table table{ width:100%; border-collapse:collapse; font-size:clamp(13px,1.6vw,16px); color:var(--ink); }
+  #agility-rank-table td{ padding:0.5vh 0.5vw; text-align:center; }
+  #agility-rank-table tr.highlight{ background:var(--yellow); border-radius:8px; font-weight:900; }
+
+  /* ---- [추가] 옵션 - 슬라이더 / 보조 안내문구 ---- */
+  .option-slider-row{ display:flex; align-items:center; gap:1vw; }
+  .option-slider-row input[type=range]{ flex:1; }
+  .option-slider-row .slider-value{ min-width:52px; font-weight:800; color:var(--ink); }
+  .option-sub-label{ font-size:13px; color:#777; margin:0.8vh 0 0.3vh; }
 </style>
 </head>
 <body>
@@ -183,6 +226,9 @@
     </div>
     <div class="btn-row" style="margin-top:1vh;">
       <button class="btn ghost" id="btn-open-help">📖 게임 방법</button>
+    </div>
+    <div class="btn-row" style="margin-top:1vh;">
+      <button class="btn secondary" id="btn-start-agility">⚡ 민첩도 테스트</button>
     </div>
   </section>
 
@@ -215,6 +261,60 @@
         </div>
       </div>
 
+      <div class="option-block">
+        <h3>🐾 과녁 이미지 파일로 선택</h3>
+        <p class="option-sub-label">폴더 대신 그림 파일 여러 개를 직접 골라도 돼요.</p>
+        <input type="file" id="img-file-input" multiple accept="image/*">
+      </div>
+
+      <div class="option-block">
+        <h3>🔊 시작음 폴더로 선택</h3>
+        <p class="option-sub-label">폴더 안의 소리 파일 중 하나가 랜덤으로 재생돼요.</p>
+        <input type="file" id="start-sound-folder-input" webkitdirectory="" multiple accept="audio/*">
+      </div>
+
+      <div class="option-block">
+        <h3>🔔 종료음 폴더로 선택</h3>
+        <p class="option-sub-label">폴더 안의 소리 파일 중 하나가 랜덤으로 재생돼요.</p>
+        <input type="file" id="end-sound-folder-input" webkitdirectory="" multiple accept="audio/*">
+      </div>
+
+      <div class="option-block">
+        <h3>🔫 총소리</h3>
+        <input type="file" id="shot-sound-input" accept="audio/*">
+        <p class="option-sub-label">폴더로 여러 개 지정하면 그중 랜덤으로 재생돼요.</p>
+        <input type="file" id="shot-sound-folder-input" webkitdirectory="" multiple accept="audio/*">
+        <div class="option-status" id="shot-sound-status">기본 총소리 사용 중</div>
+      </div>
+
+      <div class="option-block">
+        <h3>💥 과녁 부서지는 소리</h3>
+        <input type="file" id="break-sound-input" accept="audio/*">
+        <p class="option-sub-label">폴더로 여러 개 지정하면 그중 랜덤으로 재생돼요.</p>
+        <input type="file" id="break-sound-folder-input" webkitdirectory="" multiple accept="audio/*">
+        <div class="option-status" id="break-sound-status">기본 파괴음 사용 중</div>
+        <div class="btn-row">
+          <button class="btn ghost" id="btn-reset-extra-sounds">총소리·파괴음 기본값으로 초기화</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <h3>🔊 소리 크기</h3>
+        <div class="option-slider-row">
+          <input type="range" id="volume-slider" min="0" max="100" value="100">
+          <span class="slider-value" id="volume-label">100%</span>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <h3>🖱 마우스 감도</h3>
+        <p class="desc" style="margin:0 0 1vh;">게임 중에는 마우스 포인터가 화면 밖으로 나가지 않도록 고정돼요.</p>
+        <div class="option-slider-row">
+          <input type="range" id="sensitivity-slider" min="20" max="300" value="100">
+          <span class="slider-value" id="sensitivity-label">1.0x</span>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn" id="btn-close-options">저장하고 돌아가기</button>
       </div>
@@ -233,6 +333,7 @@
         <p>6. 게임 중 아래쪽 "게임 종료" 버튼을 누르면 언제든 놀이를 끝낼 수 있어요.</p>
         <p>7. 놀이가 끝나면 이름을 입력해서 1~10등 순위표에 기록할 수 있어요.</p>
         <p>8. 옵션에서 과녁 그림 폴더나 시작음/종료음을 직접 골라 꾸밀 수 있어요.</p>
+        <p>9. 첫 화면의 "⚡ 민첩도 테스트"를 누르면 화살표가 알려주는 위치에 순간적으로 나타나는 과녁을 재빨리 맞히는 미니게임을 즐길 수 있어요.</p>
       </div>
       <div class="btn-row">
         <button class="btn" id="btn-close-help">닫기</button>
@@ -269,6 +370,26 @@
     <div class="btn-row" style="margin-top:2vh;">
       <button class="btn" id="btn-retry">🔄 재도전</button>
       <button class="btn ghost" id="btn-quit">🏁 종료</button>
+    </div>
+  </section>
+
+  <section id="screen-agility-result" class="screen">
+    <h2>⚡ 민첩도 테스트 결과!</h2>
+    <div id="agility-final-score">0</div>
+    <p class="desc">명중 <span id="agility-hit-count">0 / 0</span></p>
+
+    <div id="agility-nickname-form">
+      <input type="text" id="agility-nickname-input" placeholder="이름을 입력해줘!" maxlength="10">
+      <button class="btn secondary" id="btn-agility-save-score">저장하기</button>
+    </div>
+    <div id="agility-rank-text" style="display:none;"></div>
+    <div id="agility-rank-table" style="display:none;">
+      <table id="agility-rank-table-body"></table>
+    </div>
+
+    <div class="btn-row" style="margin-top:2vh;">
+      <button class="btn" id="btn-agility-retry">🔄 재도전</button>
+      <button class="btn ghost" id="btn-agility-quit">🏁 종료</button>
     </div>
   </section>
 
@@ -842,6 +963,512 @@ async function init(){
   await loadPersistedAssets();
 }
 init();
+
+/* =========================================================================
+   [추가 기능] 아래부터는 기존 코드를 전혀 수정하지 않고 새로 추가된 코드입니다.
+   1) 마우스 감도 조절 + 게임 중 포인터 화면 밖 이탈 방지(포인터 락)
+   2) 미니게임: 민첩도 테스트
+   3) 옵션 확장: 총소리/파괴음 파일·폴더 지정, 소리 볼륨 조절
+   ========================================================================= */
+
+/* ---------- 1) 마우스 감도 조절 & 포인터 고정 ---------- */
+let mouseSensitivity = parseFloat(localStorage.getItem('mouseSensitivity'));
+if (!mouseSensitivity || isNaN(mouseSensitivity)) mouseSensitivity = 1;
+let virtualCursorX = window.innerWidth / 2;
+let virtualCursorY = window.innerHeight / 2;
+
+function requestGamePointerLock(){
+  try{
+    virtualCursorX = window.innerWidth / 2;
+    virtualCursorY = window.innerHeight / 2;
+    if (document.body.requestPointerLock) document.body.requestPointerLock();
+  }catch(err){ /* 포인터 락 미지원 환경이면 평범한 마우스 추적으로 자연히 대체됨 */ }
+}
+function releaseGamePointerLock(){
+  try{ if (document.exitPointerLock) document.exitPointerLock(); }catch(err){}
+}
+document.addEventListener('pointerlockerror', () => {});
+
+// 포인터 락 상태에서는 movementX/Y 상대값으로 가상 커서를 화면 안에서만 이동시킴
+document.addEventListener('mousemove', (e) => {
+  if (document.pointerLockElement){
+    virtualCursorX = Math.min(Math.max(virtualCursorX + e.movementX * mouseSensitivity, 0), window.innerWidth);
+    virtualCursorY = Math.min(Math.max(virtualCursorY + e.movementY * mouseSensitivity, 0), window.innerHeight);
+    cursorEl.style.left = virtualCursorX + 'px';
+    cursorEl.style.top = virtualCursorY + 'px';
+  } else {
+    virtualCursorX = e.clientX;
+    virtualCursorY = e.clientY;
+  }
+});
+
+// 포인터 락 중에는 실제 OS 커서 좌표가 고정돼 클릭 위치가 어긋나므로,
+// 캡처 단계에서 원래 클릭을 가로채 가상 커서 위치 기준으로 다시 발사한다.
+document.addEventListener('click', (e) => {
+  if (e.__syntheticAimClick) return;
+  if (!document.pointerLockElement) return;
+  e.stopPropagation();
+  e.preventDefault();
+  const realTarget = document.elementFromPoint(virtualCursorX, virtualCursorY);
+  if (!realTarget) return;
+  const synthetic = new MouseEvent('click', { clientX: virtualCursorX, clientY: virtualCursorY, bubbles: true, cancelable: true });
+  synthetic.__syntheticAimClick = true;
+  realTarget.dispatchEvent(synthetic);
+}, true);
+
+// 게임 화면을 벗어나면(시간 종료, 게임 종료 버튼 등) 자동으로 포인터 락 해제
+const gamePointerLockObserver = new MutationObserver(() => {
+  if (!document.body.classList.contains('in-game')) releaseGamePointerLock();
+});
+gamePointerLockObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+document.getElementById('btn-start-game').addEventListener('click', requestGamePointerLock);
+document.getElementById('btn-start-agility').addEventListener('click', requestGamePointerLock);
+document.getElementById('btn-quit-ingame').addEventListener('click', releaseGamePointerLock);
+
+/* ---------- 3) 소리 볼륨 + 총소리/파괴음 자료 (2번보다 먼저 선언: 2번에서 사용) ---------- */
+let shotSoundData = null;
+let breakSoundData = null;
+let masterVolume = parseFloat(localStorage.getItem('masterVolume'));
+if (isNaN(masterVolume)) masterVolume = 1;
+
+function resolveSoundData(data){
+  return Array.isArray(data) ? pick(data) : data;
+}
+function playCustomOrSynth(data, synthFn){
+  const resolved = resolveSoundData(data);
+  if (resolved){
+    const audio = new Audio(resolved);
+    audio.volume = masterVolume;
+    audio.play().catch(() => {});
+  } else {
+    synthFn();
+  }
+}
+function synthShotSound(){
+  const ctx = ensureAudioCtx();
+  const bufferSize = Math.floor(ctx.sampleRate * 0.12);
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++){
+    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.5 * masterVolume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  noise.connect(gain); gain.connect(ctx.destination);
+  noise.start();
+}
+function synthBreakSound(){
+  const ctx = ensureAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'square';
+  osc.connect(gain); gain.connect(ctx.destination);
+  const now = ctx.currentTime;
+  osc.frequency.setValueAtTime(700, now);
+  osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+  gain.gain.setValueAtTime(0.3 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+  osc.start(now); osc.stop(now + 0.18);
+}
+function playShotSound(){ playCustomOrSynth(shotSoundData, synthShotSound); }
+function playBreakSound(){ playCustomOrSynth(breakSoundData, synthBreakSound); }
+
+// 기존 playBeep/playSound를 볼륨 반영 + 폴더(배열) 지원 버전으로 교체
+// (원본 함수 선언부는 그대로 남아있고, 아래에서 같은 이름의 변수에 새 구현을 재대입만 함)
+playBeep = function(type){
+  const ctx = ensureAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  const now = ctx.currentTime;
+  if (type === 'start'){
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+  } else {
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.4);
+  }
+  gain.gain.setValueAtTime(0.2 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+  osc.start(now); osc.stop(now + 0.5);
+};
+playSound = function(type){
+  const dataUrl = resolveSoundData(type === 'start' ? startSoundData : endSoundData);
+  if (dataUrl){
+    const audio = new Audio(dataUrl);
+    audio.volume = masterVolume;
+    audio.play().catch(() => {});
+  } else {
+    playBeep(type);
+  }
+};
+
+async function loadExtraAssets(){
+  const dbShot = await dbGet('shotSound');
+  shotSoundData = dbShot || null;
+  const dbBreak = await dbGet('breakSound');
+  breakSoundData = dbBreak || null;
+  updateExtraOptionStatuses();
+}
+function updateExtraOptionStatuses(){
+  document.getElementById('shot-sound-status').textContent =
+    shotSoundData ? '사용자 지정 소리 사용 중' : '기본 총소리 사용 중';
+  document.getElementById('break-sound-status').textContent =
+    breakSoundData ? '사용자 지정 소리 사용 중' : '기본 파괴음 사용 중';
+}
+loadExtraAssets();
+
+// 게임 중 클릭 시 총소리/파괴음 재생 (판정 자체는 기존 리스너 및 민첩도 로직이 담당)
+board.addEventListener('click', (e) => {
+  if (agilityRunning){
+    if (!agilityTargetVisible) return; // 과녁이 나오기 전에는 총을 쏘지 못함(조준만 가능)
+    const imgEl = e.target.closest('.target-img');
+    playShotSound();
+    if (!imgEl) return;
+    const cellEl = imgEl.closest('.cell');
+    const index = Number(cellEl.dataset.index);
+    if (index !== agilityCurrentIndex) return;
+    playBreakSound();
+    agilityRoundHit(index);
+    return;
+  }
+  if (gameRunning){
+    playShotSound();
+    const imgEl = e.target.closest('.target-img');
+    if (imgEl){
+      const cellEl = imgEl.closest('.cell');
+      const index = Number(cellEl.dataset.index);
+      const cell = cells[index];
+      if (cell && cell.active) playBreakSound();
+    }
+  }
+});
+
+/* ---------- 2) 미니게임: 민첩도 테스트 ---------- */
+const AGILITY_DURATION = 30;
+const AGILITY_GAP_MIN = 350, AGILITY_GAP_MAX = 900;           // 다음 과녁 예고까지 대기
+const AGILITY_TELEGRAPH_MIN = 450, AGILITY_TELEGRAPH_MAX = 950; // 화살표만 보이는 시간
+const AGILITY_VISIBLE_MIN = 90, AGILITY_VISIBLE_MAX = 200;     // 과녁이 실제로 보이는 시간(최대 0.2초)
+
+let agilityRunning = false;
+let agilityTimeLeft = AGILITY_DURATION;
+let agilityTimerId = null;
+let agilityRoundTimer = null;
+let agilityCurrentIndex = -1;
+let agilityTargetVisible = false;
+let agilityScore = 0;
+let agilityHits = 0;
+let agilityRounds = 0;
+let agilitySpawnedAt = 0;
+
+const agilitySpotlightEl = document.createElement('div');
+agilitySpotlightEl.id = 'agility-spotlight';
+document.getElementById('app').appendChild(agilitySpotlightEl);
+
+const agilityArrowEl = document.createElement('div');
+agilityArrowEl.id = 'agility-arrow';
+agilityArrowEl.textContent = '⬇';
+document.getElementById('app').appendChild(agilityArrowEl);
+
+function hideAgilityOverlay(){
+  agilitySpotlightEl.classList.remove('show');
+  agilityArrowEl.classList.remove('show');
+}
+function positionAgilityOverlay(cellEl){
+  const rect = cellEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const spotSize = Math.max(rect.width, rect.height) * 1.4;
+  agilitySpotlightEl.style.width = spotSize + 'px';
+  agilitySpotlightEl.style.height = spotSize + 'px';
+  agilitySpotlightEl.style.left = cx + 'px';
+  agilitySpotlightEl.style.top = cy + 'px';
+  agilityArrowEl.style.left = cx + 'px';
+  agilityArrowEl.style.top = Math.max(10, cy - spotSize / 2 - 26) + 'px';
+}
+function clearAgilityCell(){
+  if (agilityCurrentIndex < 0) return;
+  const cell = cells[agilityCurrentIndex];
+  if (cell && cell.imgEl){ cell.imgEl.remove(); cell.imgEl = null; }
+  if (cell) cell.active = false;
+}
+function scheduleAgilityRound(){
+  if (!agilityRunning) return;
+  clearAgilityCell();
+  hideAgilityOverlay();
+  agilityTargetVisible = false;
+  const wait = rand(AGILITY_GAP_MIN, AGILITY_GAP_MAX);
+  agilityRoundTimer = setTimeout(startAgilityTelegraph, wait);
+}
+function startAgilityTelegraph(){
+  if (!agilityRunning) return;
+  agilityCurrentIndex = Math.floor(Math.random() * cells.length);
+  const cell = cells[agilityCurrentIndex];
+  positionAgilityOverlay(cell.el);
+  agilitySpotlightEl.classList.add('show');
+  agilityArrowEl.classList.add('show');
+  agilityTargetVisible = false;
+  const telegraphWait = rand(AGILITY_TELEGRAPH_MIN, AGILITY_TELEGRAPH_MAX);
+  agilityRoundTimer = setTimeout(spawnAgilityTarget, telegraphWait);
+}
+function spawnAgilityTarget(){
+  if (!agilityRunning) return;
+  const index = agilityCurrentIndex;
+  const cell = cells[index];
+  agilityArrowEl.classList.remove('show');
+  const rect = cell.el.getBoundingClientRect();
+  const shortSide = Math.min(rect.width, rect.height);
+  const sizePx = shortSide * 0.6;
+  const img = document.createElement('img');
+  img.className = 'target-img';
+  img.src = pickTargetImage();
+  img.style.width = sizePx + 'px';
+  img.style.height = sizePx + 'px';
+  img.draggable = false;
+  img.addEventListener('dragstart', (e) => e.preventDefault());
+  img.addEventListener('mousedown', (e) => e.preventDefault());
+  cell.el.appendChild(img);
+  cell.active = true;
+  cell.imgEl = img;
+  agilityTargetVisible = true;
+  agilitySpawnedAt = performance.now();
+  const visibleMs = rand(AGILITY_VISIBLE_MIN, AGILITY_VISIBLE_MAX);
+  agilityRoundTimer = setTimeout(() => agilityRoundMiss(index), visibleMs);
+}
+function agilityRoundMiss(index){
+  if (!agilityRunning || index !== agilityCurrentIndex || !agilityTargetVisible) return;
+  agilityTargetVisible = false;
+  const cell = cells[index];
+  if (cell.imgEl){
+    const el = cell.imgEl;
+    el.classList.add('popOut');
+    setTimeout(() => el.remove(), 200);
+    cell.imgEl = null;
+  }
+  cell.active = false;
+  agilityRounds++;
+  scheduleAgilityRound();
+}
+function agilityRoundHit(index){
+  if (!agilityRunning || index !== agilityCurrentIndex || !agilityTargetVisible) return;
+  clearTimeout(agilityRoundTimer);
+  agilityTargetVisible = false;
+  const cell = cells[index];
+  const reaction = performance.now() - agilitySpawnedAt;
+  const score = Math.max(20, Math.round(100 - reaction / 2));
+  agilityScore += score;
+  agilityHits++;
+  agilityRounds++;
+  document.getElementById('hud-score').textContent = '점수: ' + agilityScore;
+  showFloatingScore(cell.el, score);
+  shatterTarget(cell.el, cell.imgEl);
+  cell.imgEl = null;
+  cell.active = false;
+  scheduleAgilityRound();
+}
+
+function startAgilityCountdownAndGame(){
+  ensureAudioCtx();
+  showScreen('screen-countdown');
+  playSound('start');
+  const steps = ['3', '2', '1', 'START!'];
+  let i = 0;
+  const textEl = document.getElementById('countdown-text');
+  function nextStep(){
+    textEl.textContent = steps[i];
+    textEl.style.animation = 'none';
+    void textEl.offsetWidth;
+    textEl.style.animation = '';
+    i++;
+    if (i < steps.length){
+      setTimeout(nextStep, 1000);
+    } else {
+      setTimeout(runAgilityGame, 700);
+    }
+  }
+  nextStep();
+}
+function runAgilityGame(){
+  showScreen('screen-game');
+  buildBoard();
+  agilityScore = 0;
+  agilityHits = 0;
+  agilityRounds = 0;
+  agilityTimeLeft = AGILITY_DURATION;
+  agilityCurrentIndex = -1;
+  agilityTargetVisible = false;
+  document.getElementById('hud-score').textContent = '점수: 0';
+  document.getElementById('hud-time').textContent = '⏱ ' + agilityTimeLeft + '초';
+  agilityRunning = true;
+  scheduleAgilityRound();
+  agilityTimerId = setInterval(() => {
+    agilityTimeLeft--;
+    document.getElementById('hud-time').textContent = '⏱ ' + agilityTimeLeft + '초';
+    if (agilityTimeLeft <= 0) endAgilityGame();
+  }, 1000);
+}
+function endAgilityGame(){
+  agilityRunning = false;
+  clearInterval(agilityTimerId);
+  clearTimeout(agilityRoundTimer);
+  hideAgilityOverlay();
+  clearAgilityCell();
+  playSound('end');
+  showAgilityResultScreen();
+}
+document.getElementById('btn-quit-ingame').addEventListener('click', () => {
+  if (agilityRunning) endAgilityGame();
+});
+document.getElementById('btn-start-agility').addEventListener('click', startAgilityCountdownAndGame);
+
+/* ---- 민첩도 테스트 결과 화면 (별도 순위표 사용) ---- */
+function getAgilityRankings(){
+  return JSON.parse(localStorage.getItem('rankings_agility') || '[]');
+}
+function saveAgilityRankings(list){
+  localStorage.setItem('rankings_agility', JSON.stringify(list.slice(0, 10)));
+}
+function renderAgilityRankTable(highlightEntry){
+  const list = getAgilityRankings();
+  const tbody = document.getElementById('agility-rank-table-body');
+  tbody.innerHTML = '';
+  list.forEach((entry, i) => {
+    const tr = document.createElement('tr');
+    if (highlightEntry && entry === highlightEntry) tr.className = 'highlight';
+    tr.innerHTML = `<td>${i + 1}위</td><td>${entry.name}</td><td>${entry.score}점</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function showAgilityResultScreen(){
+  showScreen('screen-agility-result');
+  document.getElementById('agility-final-score').textContent = agilityScore;
+  document.getElementById('agility-hit-count').textContent = agilityHits + ' / ' + agilityRounds;
+  document.getElementById('agility-nickname-form').style.display = 'flex';
+  document.getElementById('agility-nickname-input').value = '';
+  document.getElementById('agility-rank-text').style.display = 'none';
+  document.getElementById('agility-rank-table').style.display = 'none';
+}
+document.getElementById('btn-agility-save-score').addEventListener('click', () => {
+  const name = document.getElementById('agility-nickname-input').value.trim() || '이름없음';
+  const list = getAgilityRankings();
+  const entry = { name, score: agilityScore };
+  list.push(entry);
+  list.sort((a, b) => b.score - a.score);
+  const rankIndex = list.indexOf(entry);
+  saveAgilityRankings(list);
+  document.getElementById('agility-nickname-form').style.display = 'none';
+  const rankText = document.getElementById('agility-rank-text');
+  rankText.style.display = 'block';
+  rankText.textContent = rankIndex < 10 ? `축하해요! ${rankIndex + 1}등이에요! 🎉` : '아쉬워요! 10등 안에는 들지 못했어요. 다시 도전해봐요!';
+  document.getElementById('agility-rank-table').style.display = 'block';
+  renderAgilityRankTable(rankIndex < 10 ? entry : null);
+});
+document.getElementById('btn-agility-retry').addEventListener('click', resetToPointerScreen);
+document.getElementById('btn-agility-quit').addEventListener('click', () => {
+  showToast('안녕히 가세요! 다음에 또 만나요 🐾', 1500);
+  setTimeout(resetToPointerScreen, 1500);
+});
+
+/* ---------- 3-계속) 옵션 화면: 새 파일/폴더 입력 + 슬라이더 ---------- */
+document.getElementById('img-file-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+  if (files.length === 0) return;
+  document.getElementById('img-status').textContent = '불러오는 중...';
+  const dataUrls = await Promise.all(files.map(readFileAsDataURL));
+  await dbSet('targetImages', dataUrls);
+  customImages = dataUrls;
+  updateOptionStatuses();
+  showToast(`이미지 ${dataUrls.length}개를 저장했어요!`);
+});
+
+document.getElementById('start-sound-folder-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (files.length === 0){ showToast('폴더에서 소리 파일을 찾지 못했어요.'); return; }
+  const dataUrls = await Promise.all(files.map(readFileAsDataURL));
+  await dbSet('startSound', dataUrls);
+  startSoundData = dataUrls;
+  updateOptionStatuses();
+  showToast(`시작음 ${dataUrls.length}개를 저장했어요!`);
+});
+document.getElementById('end-sound-folder-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (files.length === 0){ showToast('폴더에서 소리 파일을 찾지 못했어요.'); return; }
+  const dataUrls = await Promise.all(files.map(readFileAsDataURL));
+  await dbSet('endSound', dataUrls);
+  endSoundData = dataUrls;
+  updateOptionStatuses();
+  showToast(`종료음 ${dataUrls.length}개를 저장했어요!`);
+});
+
+document.getElementById('shot-sound-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const dataUrl = await readFileAsDataURL(file);
+  await dbSet('shotSound', dataUrl);
+  shotSoundData = dataUrl;
+  updateExtraOptionStatuses();
+  showToast('총소리를 저장했어요!');
+});
+document.getElementById('shot-sound-folder-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (files.length === 0){ showToast('폴더에서 소리 파일을 찾지 못했어요.'); return; }
+  const dataUrls = await Promise.all(files.map(readFileAsDataURL));
+  await dbSet('shotSound', dataUrls);
+  shotSoundData = dataUrls;
+  updateExtraOptionStatuses();
+  showToast(`총소리 ${dataUrls.length}개를 저장했어요!`);
+});
+document.getElementById('break-sound-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const dataUrl = await readFileAsDataURL(file);
+  await dbSet('breakSound', dataUrl);
+  breakSoundData = dataUrl;
+  updateExtraOptionStatuses();
+  showToast('과녁 부서지는 소리를 저장했어요!');
+});
+document.getElementById('break-sound-folder-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (files.length === 0){ showToast('폴더에서 소리 파일을 찾지 못했어요.'); return; }
+  const dataUrls = await Promise.all(files.map(readFileAsDataURL));
+  await dbSet('breakSound', dataUrls);
+  breakSoundData = dataUrls;
+  updateExtraOptionStatuses();
+  showToast(`과녁 부서지는 소리 ${dataUrls.length}개를 저장했어요!`);
+});
+document.getElementById('btn-reset-extra-sounds').addEventListener('click', async () => {
+  await dbDelete('shotSound');
+  await dbDelete('breakSound');
+  shotSoundData = null;
+  breakSoundData = null;
+  updateExtraOptionStatuses();
+  showToast('총소리·파괴음을 기본값으로 초기화했어요.');
+});
+
+const volumeSliderEl = document.getElementById('volume-slider');
+const volumeLabelEl = document.getElementById('volume-label');
+volumeSliderEl.value = String(Math.round(masterVolume * 100));
+volumeLabelEl.textContent = volumeSliderEl.value + '%';
+volumeSliderEl.addEventListener('input', () => {
+  masterVolume = Number(volumeSliderEl.value) / 100;
+  localStorage.setItem('masterVolume', String(masterVolume));
+  volumeLabelEl.textContent = volumeSliderEl.value + '%';
+});
+
+const sensitivitySliderEl = document.getElementById('sensitivity-slider');
+const sensitivityLabelEl = document.getElementById('sensitivity-label');
+sensitivitySliderEl.value = String(Math.round(mouseSensitivity * 100));
+sensitivityLabelEl.textContent = mouseSensitivity.toFixed(1) + 'x';
+sensitivitySliderEl.addEventListener('input', () => {
+  mouseSensitivity = Number(sensitivitySliderEl.value) / 100;
+  localStorage.setItem('mouseSensitivity', String(mouseSensitivity));
+  sensitivityLabelEl.textContent = mouseSensitivity.toFixed(1) + 'x';
+});
 
 })();
 </script>
