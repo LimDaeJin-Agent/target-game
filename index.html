@@ -99,6 +99,17 @@
     flex:1 1 auto; width:100%; display:grid;
     grid-template-columns:repeat(7,1fr); grid-template-rows:repeat(5,1fr);
     gap:0.6vmin; padding:0.6vmin; box-sizing:border-box;
+    touch-action:none;
+  }
+  .shot-flash{
+    position:fixed; width:54px; height:54px; border-radius:50%;
+    border:4px solid #fff; box-shadow:0 0 0 3px rgba(255,90,60,0.85), 0 0 18px rgba(255,140,60,0.9);
+    transform:translate(-50%,-50%) scale(0.3); opacity:1;
+    pointer-events:none; z-index:500; animation:shotFlash .28s ease-out forwards;
+  }
+  @keyframes shotFlash{
+    0%{ transform:translate(-50%,-50%) scale(0.3); opacity:1; }
+    100%{ transform:translate(-50%,-50%) scale(1.4); opacity:0; }
   }
   .cell{
     position:relative; background:rgba(255,255,255,0.4); border-radius:14px;
@@ -976,8 +987,10 @@ let mouseSensitivity = parseFloat(localStorage.getItem('mouseSensitivity'));
 if (!mouseSensitivity || isNaN(mouseSensitivity)) mouseSensitivity = 1;
 let virtualCursorX = window.innerWidth / 2;
 let virtualCursorY = window.innerHeight / 2;
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
 function requestGamePointerLock(){
+  if (isTouchDevice) return; // 터치 기기는 포인터 락을 쓰지 않고 터치 좌표를 그대로 조준점으로 사용
   try{
     virtualCursorX = window.innerWidth / 2;
     virtualCursorY = window.innerHeight / 2;
@@ -1469,6 +1482,33 @@ sensitivitySliderEl.addEventListener('input', () => {
   localStorage.setItem('mouseSensitivity', String(mouseSensitivity));
   sensitivityLabelEl.textContent = mouseSensitivity.toFixed(1) + 'x';
 });
+
+/* ---------- 4) 모바일 터치 사격 지원 ---------- */
+// 마우스가 없는 터치 기기에서는 터치한 위치가 곧 조준점이자 발사 지점이 된다.
+// 실제 판정은 기존 click 핸들러(779줄, 1127줄)를 그대로 재사용하기 위해,
+// 터치 좌표에서 elementFromPoint로 실제 대상을 찾은 뒤 그 위치에 합성 click을 발사한다.
+function showShotFlash(x, y){
+  const flash = document.createElement('div');
+  flash.className = 'shot-flash';
+  flash.style.left = x + 'px';
+  flash.style.top = y + 'px';
+  document.getElementById('app').appendChild(flash);
+  flash.addEventListener('animationend', () => flash.remove());
+}
+function fireTouchShot(x, y){
+  showShotFlash(x, y);
+  const el = document.elementFromPoint(x, y);
+  if (!el) return;
+  const synthetic = new MouseEvent('click', { clientX: x, clientY: y, bubbles: true, cancelable: true });
+  el.dispatchEvent(synthetic);
+}
+board.addEventListener('touchstart', (e) => {
+  if (!gameRunning && !agilityRunning) return;
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  if (!touch) return;
+  fireTouchShot(touch.clientX, touch.clientY);
+}, { passive:false });
 
 })();
 </script>
