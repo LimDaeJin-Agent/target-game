@@ -179,6 +179,20 @@
     display:none;
   }
   body.in-game #cursor{ display:block; }
+  body.touch-device.in-game #cursor{ display:none; }
+
+  /* ---- [추가] 게임 중 화면 확대/축소/이동 방지 ---- */
+  body.viewport-locked{ touch-action:none; overscroll-behavior:none; }
+
+  /* ---- [추가] 모바일 전용 조준경 ---- */
+  .mobile-reticle{
+    position:fixed; left:50%; top:50%; width:46px; height:46px;
+    transform:translate(-50%,-50%);
+    background-repeat:no-repeat; background-size:contain; background-position:center;
+    pointer-events:none; z-index:999998;
+    display:none;
+  }
+  body.touch-device.in-game .mobile-reticle{ display:block; }
 
   /* ---- [추가] 민첩도 테스트: 스포트라이트/화살표 ---- */
   #agility-spotlight{
@@ -1509,6 +1523,95 @@ board.addEventListener('touchstart', (e) => {
   if (!touch) return;
   fireTouchShot(touch.clientX, touch.clientY);
 }, { passive:false });
+
+/* ---------- 5) 게임 중 화면 확대/축소/이동 방지 ---------- */
+// "게임 시작" 버튼을 눌러 카운트다운이 시작되는 순간부터 게임이 끝나 메뉴로 돌아가기 전까지
+// 핀치 줌/트랙패드 줌/브라우저 확대(Ctrl+휠)를 막아 화면이 흔들리거나 밀리지 않게 한다. (PC/모바일 공통)
+document.body.classList.toggle('touch-device', isTouchDevice);
+
+const viewportMetaEl = document.querySelector('meta[name="viewport"]');
+const VIEWPORT_FREE = 'width=device-width, initial-scale=1.0';
+const VIEWPORT_LOCKED = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no';
+
+function preventBrowserGesture(e){ e.preventDefault(); }
+function preventCtrlWheelZoom(e){ if (e.ctrlKey) e.preventDefault(); }
+
+function setViewportLocked(locked){
+  document.body.classList.toggle('viewport-locked', locked);
+  if (viewportMetaEl) viewportMetaEl.setAttribute('content', locked ? VIEWPORT_LOCKED : VIEWPORT_FREE);
+  document.removeEventListener('gesturestart', preventBrowserGesture);
+  document.removeEventListener('gesturechange', preventBrowserGesture);
+  document.removeEventListener('wheel', preventCtrlWheelZoom);
+  if (locked){
+    document.addEventListener('gesturestart', preventBrowserGesture, { passive:false });
+    document.addEventListener('gesturechange', preventBrowserGesture, { passive:false });
+    document.addEventListener('wheel', preventCtrlWheelZoom, { passive:false });
+  }
+}
+
+// 게임 화면을 벗어날 때 터치 조준경이 남아있으면 정리한다(섹션 6에서 실제 구현을 주입).
+let resetMobileReticles = null;
+
+// 기존 showScreen을 그대로 두고, 화면 전환 시점마다 잠금 상태만 덧붙여 갱신한다.
+const baseShowScreen = showScreen;
+showScreen = function(id){
+  baseShowScreen(id);
+  setViewportLocked(id === 'screen-countdown' || id === 'screen-game');
+  if (id !== 'screen-game' && resetMobileReticles) resetMobileReticles();
+};
+
+/* ---------- 6) 모바일 조준경 ---------- */
+// 평소엔 화면 정중앙에 떠 있다가, 손가락으로 화면을 짚는 즉시 그 터치 지점(들)에 조준경이 나타나고
+// 손을 떼면 그 조준경은 사라진다(다시 중앙 조준경만 남음). 모바일(터치 기기)에서만 동작.
+if (isTouchDevice){
+  const reticleBg = `url("${svgToDataUri(CURSOR_STYLES.find(s => s.id === 'circle-cross').svg)}")`;
+
+  const centerReticleEl = document.createElement('div');
+  centerReticleEl.className = 'mobile-reticle';
+  centerReticleEl.style.backgroundImage = reticleBg;
+  document.getElementById('app').appendChild(centerReticleEl);
+
+  const touchReticles = new Map();
+  function createTouchReticle(x, y){
+    const el = document.createElement('div');
+    el.className = 'mobile-reticle';
+    el.style.backgroundImage = reticleBg;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    document.getElementById('app').appendChild(el);
+    return el;
+  }
+  function onReticleTouchStart(e){
+    centerReticleEl.style.display = 'none';
+    for (const t of e.changedTouches){
+      touchReticles.set(t.identifier, createTouchReticle(t.clientX, t.clientY));
+    }
+  }
+  function onReticleTouchMove(e){
+    for (const t of e.changedTouches){
+      const el = touchReticles.get(t.identifier);
+      if (el){ el.style.left = t.clientX + 'px'; el.style.top = t.clientY + 'px'; }
+    }
+  }
+  function onReticleTouchEnd(e){
+    for (const t of e.changedTouches){
+      const el = touchReticles.get(t.identifier);
+      if (el){ el.remove(); touchReticles.delete(t.identifier); }
+    }
+    if (touchReticles.size === 0) centerReticleEl.style.display = '';
+  }
+  board.addEventListener('touchstart', onReticleTouchStart, { passive:true });
+  board.addEventListener('touchmove', onReticleTouchMove, { passive:true });
+  board.addEventListener('touchend', onReticleTouchEnd, { passive:true });
+  board.addEventListener('touchcancel', onReticleTouchEnd, { passive:true });
+
+  // 게임 화면을 벗어날 때 손을 뗀 적 없는 터치 조준경이 남아있으면 청소한다.
+  resetMobileReticles = function(){
+    touchReticles.forEach(el => el.remove());
+    touchReticles.clear();
+    centerReticleEl.style.display = '';
+  };
+}
 
 })();
 </script>
