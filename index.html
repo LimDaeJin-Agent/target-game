@@ -44,6 +44,12 @@
   .btn.ghost{ background:#fff; color:var(--ink); box-shadow:0 4px 0 rgba(0,0,0,0.1); }
   .btn-row{ display:flex; gap:2vw; flex-wrap:wrap; justify-content:center; margin-top:1.5vh; }
 
+  /* ---- 게임 선택 화면 ---- */
+  .mode-select-grid{ display:flex; flex-direction:column; gap:1.4vh; width:100%; max-width:420px; margin:0 auto 2.5vh; }
+  .mode-btn{ display:flex; flex-direction:column; align-items:center; line-height:1.3; padding:1.6vh 3vw; }
+  .mode-btn .mode-sub{ display:block; font-size:0.6em; font-weight:600; opacity:0.85; margin-top:0.4vh; }
+  .mode-btn-purple{ background:var(--purple); }
+
   /* ---- 포인터 선택 화면 ---- */
   .pointer-grid{ display:flex; gap:2vw; flex-wrap:wrap; justify-content:center; margin-bottom:3vh; }
   .pointer-choice{
@@ -101,6 +107,14 @@
     gap:0.6vmin; padding:0.6vmin; box-sizing:border-box;
     touch-action:none;
   }
+  /* ---- 게임 2/3(질주 파괴, 버블 파괴): 격자 대신 자유 배치 영역 ---- */
+  #board.board-free{ display:block; position:relative; overflow:hidden; padding:0; }
+  .bubble-target{
+    position:absolute; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(190,225,255,0.55) 60%, rgba(140,190,255,0.35) 100%);
+    box-shadow:0 4px 10px rgba(0,0,0,0.18), inset 0 0 14px rgba(255,255,255,0.7);
+  }
+  .bubble-target img{ width:68%; height:68%; position:static; filter:none; }
   .shot-flash{
     position:fixed; width:54px; height:54px; border-radius:50%;
     border:4px solid #fff; box-shadow:0 0 0 3px rgba(255,90,60,0.85), 0 0 18px rgba(255,140,60,0.9);
@@ -243,13 +257,16 @@
 
   <section id="screen-pointer" class="screen active">
     <h1>🎯 동물 과녁 맞추기 🎯</h1>
+    <h2>🎮 게임을 선택하세요</h2>
+    <div class="mode-select-grid">
+      <button class="btn mode-btn" id="btn-start-game">1️⃣ 동물 과녁 맞추기<span class="mode-sub">칸칸이 나오는 과녁을 터치!</span></button>
+      <button class="btn mode-btn secondary" id="btn-start-falling">2️⃣ 질주 파괴<span class="mode-sub">쏟아지는 과녁을 터치!</span></button>
+      <button class="btn mode-btn mode-btn-purple" id="btn-start-bubble">3️⃣ 버블 파괴<span class="mode-sub">크게 뜨는 과녁을 팡팡!</span></button>
+    </div>
     <h2>마우스 포인터 모양을 골라주세요</h2>
     <div class="pointer-grid" id="pointer-grid"><div class="pointer-choice selected" data-id="circle-dot"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2215%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2215%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%224%22%20fill%3D%22%23FF3B3B%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="circle-cross"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2213%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2213%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%222%22%20x2%3D%2220%22%20y2%3D%2238%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%222%22%20y1%3D%2220%22%20x2%3D%2238%22%20y2%3D%2220%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%222%22%20x2%3D%2220%22%20y2%3D%2238%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%222%22%20y1%3D%2220%22%20x2%3D%2238%22%20y2%3D%2220%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="cross"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%224%22%20x2%3D%2220%22%20y2%3D%2236%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%224%22%20y1%3D%2220%22%20x2%3D%2236%22%20y2%3D%2220%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%224%22%20x2%3D%2220%22%20y2%3D%2236%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%224%22%20y1%3D%2220%22%20x2%3D%2236%22%20y2%3D%2220%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="donut"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%223%22%20fill%3D%22%23FF3B3B%22%2F%3E%3C%2Fsvg%3E"></div></div>
     <div class="btn-row">
       <button class="btn ghost" id="btn-open-options">⚙️ 옵션</button>
-      <button class="btn" id="btn-start-game">놀이 시작! ▶</button>
-    </div>
-    <div class="btn-row" style="margin-top:1vh;">
       <button class="btn ghost" id="btn-open-help">📖 게임 방법</button>
     </div>
     <div class="btn-row" style="margin-top:1vh;">
@@ -260,6 +277,7 @@
   <section id="screen-options" class="screen">
     <div class="options-card">
       <h2>⚙️ 옵션</h2>
+      <p class="desc" style="margin:0 0 2vh;">여기서 설정한 그림·소리·속도는 1,2,3번 게임 전부에 똑같이 적용돼요.</p>
 
       <div class="option-block">
         <h3>🐾 과녁 이미지 폴더</h3>
@@ -340,6 +358,15 @@
         </div>
       </div>
 
+      <div class="option-block">
+        <h3>⚡ 게임 진행 속도</h3>
+        <p class="desc" style="margin:0 0 1vh;">과녁이 나타나고 사라지는 속도, 떨어지는 속도를 조절해요. 기본값은 2배로 빨라서 긴장감이 높아요. 너무 빠르면 낮춰보세요. (1,2,3번 게임 공통)</p>
+        <div class="option-slider-row">
+          <input type="range" id="speed-slider" min="50" max="300" value="200">
+          <span class="slider-value" id="speed-label">2.0x</span>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn" id="btn-close-options">저장하고 돌아가기</button>
       </div>
@@ -350,15 +377,19 @@
     <div class="options-card">
       <h2>📖 게임 방법</h2>
       <div class="help-text">
-        <p>1. 마우스 포인터 모양을 골라주세요.</p>
-        <p>2. "놀이 시작!"을 누르면 3, 2, 1, START! 하고 놀이가 시작돼요.</p>
-        <p>3. 화면 곳곳에서 동물 과녁이 나타났다 사라져요. 나타난 동물을 마우스 왼쪽 클릭으로 맞춰보세요!</p>
+        <p>1. 첫 화면에서 1️⃣2️⃣3️⃣ 중 원하는 게임을 골라주세요.</p>
+        <p>&nbsp;&nbsp;· 1번 동물 과녁 맞추기: 격자 칸칸이 나오는 과녁을 클릭/터치!</p>
+        <p>&nbsp;&nbsp;· 2번 질주 파괴: 위에서 쏟아져 떨어지는 과녁을 지나가기 전에 맞춰요.</p>
+        <p>&nbsp;&nbsp;· 3번 버블 파괴: 화면 여기저기 크게 뜨는 과녁을 터치로 팡팡 터뜨려요.</p>
+        <p>2. 게임을 고르면 3, 2, 1, START! 카운트다운 후 30초 동안 놀이가 시작돼요.</p>
+        <p>3. 마우스는 왼쪽 클릭, 모바일은 화면을 터치하면 그 자리에서 바로 발사돼요.</p>
         <p>4. 작고 빨리 사라지는 과녁일수록 점수가 높고, 크고 오래 있는 과녁일수록 점수가 낮아요.</p>
         <p>5. 30초 동안 최대한 많은 점수를 모아보세요. 빈 곳을 클릭해도 감점은 없어요.</p>
         <p>6. 게임 중 아래쪽 "게임 종료" 버튼을 누르면 언제든 놀이를 끝낼 수 있어요.</p>
-        <p>7. 놀이가 끝나면 이름을 입력해서 1~10등 순위표에 기록할 수 있어요.</p>
-        <p>8. 옵션에서 과녁 그림 폴더나 시작음/종료음을 직접 골라 꾸밀 수 있어요.</p>
-        <p>9. 첫 화면의 "⚡ 민첩도 테스트"를 누르면 화살표가 알려주는 위치에 순간적으로 나타나는 과녁을 재빨리 맞히는 미니게임을 즐길 수 있어요.</p>
+        <p>7. 놀이가 끝나면 이름을 입력해서 1~10등 순위표에 기록할 수 있어요. (1,2,3번 게임은 순위표가 각각 따로 관리돼요)</p>
+        <p>8. 옵션에서 과녁 그림 폴더나 시작음/종료음을 직접 골라 꾸밀 수 있고, 이 설정은 1,2,3번 게임에 공통으로 적용돼요.</p>
+        <p>9. 옵션의 "⚡ 게임 진행 속도"로 과녁이 나오고 사라지는 속도를 조절할 수 있어요. 기본은 2배 빠른 속도예요.</p>
+        <p>10. 첫 화면의 "⚡ 민첩도 테스트"를 누르면 화살표가 알려주는 위치에 순간적으로 나타나는 과녁을 재빨리 맞히는 미니게임을 즐길 수 있어요.</p>
       </div>
       <div class="btn-row">
         <button class="btn" id="btn-close-help">닫기</button>
@@ -434,6 +465,18 @@ const MIN_SCORE = 10, MAX_SCORE = 100;
 const MIN_DURATION = 500, MAX_DURATION = 3000;
 const MIN_WAIT = 300, MAX_WAIT = 2200;
 const MAX_ACTIVE_TARGETS = 15;
+
+/* ---- 게임 2 (질주 파괴: 낙하형) 설정값 ---- */
+const MAX_ACTIVE_FALLING = 8;
+const FALL_MIN_SIZE_RATIO = 0.14, FALL_MAX_SIZE_RATIO = 0.24;
+const FALL_MIN_DURATION = 1300, FALL_MAX_DURATION = 2600;
+const FALL_SPAWN_MIN_GAP = 260, FALL_SPAWN_MAX_GAP = 620;
+
+/* ---- 게임 3 (버블 파괴) 설정값 ---- */
+const MAX_ACTIVE_BUBBLES = 6;
+const BUBBLE_MIN_SIZE_RATIO = 0.22, BUBBLE_MAX_SIZE_RATIO = 0.34;
+const BUBBLE_MIN_DURATION = 900, BUBBLE_MAX_DURATION = 2000;
+const BUBBLE_SPAWN_GAP_MIN = 120, BUBBLE_SPAWN_GAP_MAX = 380;
 
 /* ========== 유틸 ========== */
 function rand(min, max){ return Math.random() * (max - min) + min; }
@@ -578,6 +621,8 @@ function readFileAsDataURL(file){
 
 /* ========== 앱 상태 ========== */
 let pointerStyle = localStorage.getItem('pointerStyle') || 'circle-dot';
+let speedMultiplier = parseFloat(localStorage.getItem('speedMultiplier'));
+if (!speedMultiplier || isNaN(speedMultiplier)) speedMultiplier = 2;
 let customImages = [];
 let startSoundData = null;
 let endSoundData = null;
@@ -689,9 +734,12 @@ let timeLeft = GAME_DURATION;
 let gameTimerId = null;
 let gameRunning = false;
 let activeTargetCount = 0;
+let currentMode = 'grid';
+let lastFinalScore = 0;
 
 function buildBoard(){
   board.innerHTML = '';
+  board.classList.remove('board-free');
   cells = [];
   for (let i = 0; i < ROWS * COLS; i++){
     const cellEl = document.createElement('div');
@@ -705,7 +753,7 @@ function buildBoard(){
 function scheduleCell(index){
   const cell = cells[index];
   clearTimeout(cell.timerId);
-  const wait = rand(MIN_WAIT, MAX_WAIT);
+  const wait = rand(MIN_WAIT, MAX_WAIT) / speedMultiplier;
   cell.timerId = setTimeout(() => spawnTarget(index), wait);
 }
 
@@ -723,7 +771,7 @@ function spawnTarget(index){
   const sizePx = sizeRatio * shortSide;
   const norm = (sizeRatio - MIN_SIZE_RATIO) / (MAX_SIZE_RATIO - MIN_SIZE_RATIO);
   const score = Math.round(MAX_SCORE - norm * (MAX_SCORE - MIN_SCORE));
-  const duration = MIN_DURATION + norm * (MAX_DURATION - MIN_DURATION);
+  const duration = (MIN_DURATION + norm * (MAX_DURATION - MIN_DURATION)) / speedMultiplier;
 
   const img = document.createElement('img');
   img.className = 'target-img';
@@ -816,7 +864,8 @@ board.addEventListener('click', (e) => {
   despawnTarget(index, true);
 });
 
-function startCountdownAndGame(){
+function startCountdownAndGame(mode, runFn){
+  currentMode = mode;
   ensureAudioCtx();
   showScreen('screen-countdown');
   playSound('start');
@@ -832,7 +881,7 @@ function startCountdownAndGame(){
     if (i < steps.length){
       setTimeout(nextStep, 1000);
     } else {
-      setTimeout(runGame, 700);
+      setTimeout(runFn, 700);
     }
   }
   nextStep();
@@ -863,18 +912,21 @@ function endGame(){
     if (cell.imgEl) cell.imgEl.remove();
   });
   playSound('end');
-  showResultScreen();
+  showResultScreen(totalScore);
 }
 
 /* ========== 순위표 ========== */
-function getRankings(){
-  return JSON.parse(localStorage.getItem('rankings') || '[]');
+// 게임 1(그리드)은 기존 저장 기록을 그대로 쓰도록 'rankings' 키를 유지하고,
+// 새로 추가된 모드는 'rankings_<mode>' 키로 각자 따로 순위를 관리한다.
+function rankingsKey(mode){ return mode === 'grid' ? 'rankings' : 'rankings_' + mode; }
+function getRankings(mode){
+  return JSON.parse(localStorage.getItem(rankingsKey(mode)) || '[]');
 }
-function saveRankings(list){
-  localStorage.setItem('rankings', JSON.stringify(list.slice(0, 10)));
+function saveRankings(mode, list){
+  localStorage.setItem(rankingsKey(mode), JSON.stringify(list.slice(0, 10)));
 }
 function renderRankTable(highlightEntry){
-  const list = getRankings();
+  const list = getRankings(currentMode);
   const tbody = document.getElementById('rank-table-body');
   tbody.innerHTML = '';
   list.forEach((entry, i) => {
@@ -885,9 +937,10 @@ function renderRankTable(highlightEntry){
   });
 }
 
-function showResultScreen(){
+function showResultScreen(score){
+  lastFinalScore = score;
   showScreen('screen-result');
-  document.getElementById('final-score').textContent = totalScore;
+  document.getElementById('final-score').textContent = score;
   document.getElementById('nickname-form').style.display = 'flex';
   document.getElementById('nickname-input').value = '';
   document.getElementById('rank-text').style.display = 'none';
@@ -896,12 +949,12 @@ function showResultScreen(){
 
 document.getElementById('btn-save-score').addEventListener('click', () => {
   const name = document.getElementById('nickname-input').value.trim() || '이름없음';
-  const list = getRankings();
-  const entry = { name, score: totalScore };
+  const list = getRankings(currentMode);
+  const entry = { name, score: lastFinalScore };
   list.push(entry);
   list.sort((a, b) => b.score - a.score);
   const rankIndex = list.indexOf(entry);
-  saveRankings(list);
+  saveRankings(currentMode, list);
   document.getElementById('nickname-form').style.display = 'none';
   const rankText = document.getElementById('rank-text');
   rankText.style.display = 'block';
@@ -979,7 +1032,7 @@ document.getElementById('btn-reset-sounds').addEventListener('click', async () =
   showToast('사운드를 기본값으로 초기화했어요.');
 });
 
-document.getElementById('btn-start-game').addEventListener('click', startCountdownAndGame);
+document.getElementById('btn-start-game').addEventListener('click', () => startCountdownAndGame('grid', runGame));
 
 /* ========== 초기화 ========== */
 async function init(){
@@ -1051,6 +1104,8 @@ gamePointerLockObserver.observe(document.body, { attributes: true, attributeFilt
 
 document.getElementById('btn-start-game').addEventListener('click', requestGamePointerLock);
 document.getElementById('btn-start-agility').addEventListener('click', requestGamePointerLock);
+document.getElementById('btn-start-falling').addEventListener('click', requestGamePointerLock);
+document.getElementById('btn-start-bubble').addEventListener('click', requestGamePointerLock);
 document.getElementById('btn-quit-ingame').addEventListener('click', releaseGamePointerLock);
 
 /* ---------- 3) 소리 볼륨 + 총소리/파괴음 자료 (2번보다 먼저 선언: 2번에서 사용) ---------- */
@@ -1158,6 +1213,7 @@ board.addEventListener('click', (e) => {
     playShotSound();
     if (!imgEl) return;
     const cellEl = imgEl.closest('.cell');
+    if (!cellEl) return; // 자유 배치 모드(게임 2/3)의 과녁은 .cell이 없으므로 해당 모드가 아닐 때만 존재
     const index = Number(cellEl.dataset.index);
     if (index !== agilityCurrentIndex) return;
     playBreakSound();
@@ -1169,9 +1225,11 @@ board.addEventListener('click', (e) => {
     const imgEl = e.target.closest('.target-img');
     if (imgEl){
       const cellEl = imgEl.closest('.cell');
-      const index = Number(cellEl.dataset.index);
-      const cell = cells[index];
-      if (cell && cell.active) playBreakSound();
+      if (cellEl){
+        const index = Number(cellEl.dataset.index);
+        const cell = cells[index];
+        if (cell && cell.active) playBreakSound();
+      }
     }
   }
 });
@@ -1517,7 +1575,7 @@ function fireTouchShot(x, y){
   el.dispatchEvent(synthetic);
 }
 board.addEventListener('touchstart', (e) => {
-  if (!gameRunning && !agilityRunning) return;
+  if (!gameRunning && !agilityRunning && !fallingRunning && !bubbleRunning) return;
   e.preventDefault();
   const touch = e.changedTouches[0];
   if (!touch) return;
@@ -1612,6 +1670,275 @@ if (isTouchDevice){
     centerReticleEl.style.display = '';
   };
 }
+
+/* ---------- 7) 게임 진행 속도 옵션 ---------- */
+const speedSliderEl = document.getElementById('speed-slider');
+const speedLabelEl = document.getElementById('speed-label');
+speedSliderEl.value = String(Math.round(speedMultiplier * 100));
+speedLabelEl.textContent = speedMultiplier.toFixed(1) + 'x';
+speedSliderEl.addEventListener('input', () => {
+  speedMultiplier = Number(speedSliderEl.value) / 100;
+  localStorage.setItem('speedMultiplier', String(speedMultiplier));
+  speedLabelEl.textContent = speedMultiplier.toFixed(1) + 'x';
+});
+
+// 자유 배치 모드(게임 2/3)에서 점수 팝업을 실제 명중 좌표에 띄우기 위한 헬퍼.
+// (기존 showFloatingScore는 부모 요소 정중앙에 뜨는 방식이라 격자 칸에는 맞지만
+//  화면 전체를 쓰는 자유 배치 모드에는 맞지 않아 좌표 지정용을 따로 둔다.)
+function showFloatingScoreAt(container, x, y, score){
+  const el = document.createElement('div');
+  el.className = 'float-score';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = '+' + score;
+  container.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+function targetCenterInBoard(el){
+  const r = el.getBoundingClientRect();
+  const boardRect = board.getBoundingClientRect();
+  return { x: r.left + r.width / 2 - boardRect.left, y: r.top + r.height / 2 - boardRect.top };
+}
+
+/* ---------- 8) 게임 모드 2: 질주 파괴 (낙하형) ---------- */
+let fallingScore = 0;
+let fallingTimeLeft = GAME_DURATION;
+let fallingTimerId = null;
+let fallingSpawnTimerId = null;
+let fallingRunning = false;
+const fallingTargets = new Set();
+
+function buildFallingBoard(){
+  board.innerHTML = '';
+  board.classList.add('board-free');
+  fallingTargets.clear();
+}
+
+function scheduleFallingSpawn(){
+  if (!fallingRunning) return;
+  const gap = rand(FALL_SPAWN_MIN_GAP, FALL_SPAWN_MAX_GAP) / speedMultiplier;
+  fallingSpawnTimerId = setTimeout(spawnFallingTarget, gap);
+}
+
+function spawnFallingTarget(){
+  if (!fallingRunning) return;
+  if (fallingTargets.size >= MAX_ACTIVE_FALLING){
+    scheduleFallingSpawn();
+    return;
+  }
+  const rect = board.getBoundingClientRect();
+  const shortSide = Math.min(rect.width, rect.height);
+  const sizeRatio = rand(FALL_MIN_SIZE_RATIO, FALL_MAX_SIZE_RATIO);
+  const size = sizeRatio * shortSide;
+  const norm = (sizeRatio - FALL_MIN_SIZE_RATIO) / (FALL_MAX_SIZE_RATIO - FALL_MIN_SIZE_RATIO);
+  const score = Math.round(MAX_SCORE - norm * (MAX_SCORE - MIN_SCORE));
+  const fallMs = rand(FALL_MIN_DURATION, FALL_MAX_DURATION) / speedMultiplier;
+  const startX = rand(0, Math.max(0, rect.width - size));
+
+  const img = document.createElement('img');
+  img.className = 'target-img';
+  img.src = pickTargetImage();
+  img.style.width = size + 'px';
+  img.style.height = size + 'px';
+  img.style.left = startX + 'px';
+  img.style.top = (-size) + 'px';
+  img.draggable = false;
+  img.addEventListener('dragstart', (e) => e.preventDefault());
+  img.addEventListener('mousedown', (e) => e.preventDefault());
+  board.appendChild(img);
+
+  img._score = score;
+  img._alive = true;
+  fallingTargets.add(img);
+
+  void img.offsetHeight; // 초기 top(-size) 값이 실제로 반영되게 강제로 레이아웃을 한 번 확정한 뒤
+  img.style.transition = 'top ' + (fallMs / 1000) + 's linear'; // 전환을 걸어야 낙하 애니메이션이 매번 확실히 시작된다.
+  img.style.top = (rect.height + size) + 'px';
+
+  img._missTimer = setTimeout(() => missFallingTarget(img), fallMs);
+  scheduleFallingSpawn();
+}
+
+function missFallingTarget(img){
+  if (!img._alive) return;
+  img._alive = false;
+  fallingTargets.delete(img);
+  img.remove();
+}
+
+function hitFallingTarget(img){
+  if (!img._alive) return;
+  img._alive = false;
+  clearTimeout(img._missTimer);
+  fallingTargets.delete(img);
+  fallingScore += img._score;
+  document.getElementById('hud-score').textContent = '점수: ' + fallingScore;
+  const c = targetCenterInBoard(img);
+  showFloatingScoreAt(board, c.x, c.y, img._score);
+  shatterTarget(board, img);
+}
+
+board.addEventListener('click', (e) => {
+  if (!fallingRunning) return;
+  const imgEl = e.target.closest('.target-img');
+  playShotSound();
+  if (!imgEl || !fallingTargets.has(imgEl)) return;
+  playBreakSound();
+  hitFallingTarget(imgEl);
+});
+
+function runFallingGame(){
+  showScreen('screen-game');
+  buildFallingBoard();
+  fallingScore = 0;
+  fallingTimeLeft = GAME_DURATION;
+  document.getElementById('hud-score').textContent = '점수: 0';
+  document.getElementById('hud-time').textContent = '⏱ ' + fallingTimeLeft + '초';
+  fallingRunning = true;
+  scheduleFallingSpawn();
+  fallingTimerId = setInterval(() => {
+    fallingTimeLeft--;
+    document.getElementById('hud-time').textContent = '⏱ ' + fallingTimeLeft + '초';
+    if (fallingTimeLeft <= 0) endFallingGame();
+  }, 1000);
+}
+
+function endFallingGame(){
+  fallingRunning = false;
+  clearInterval(fallingTimerId);
+  clearTimeout(fallingSpawnTimerId);
+  fallingTargets.forEach(img => clearTimeout(img._missTimer));
+  fallingTargets.clear();
+  board.innerHTML = ''; // 방금 miss 처리되어 popOut 애니메이션 중인 잔여 요소까지 한 번에 정리
+  board.classList.remove('board-free');
+  playSound('end');
+  showResultScreen(fallingScore);
+}
+
+document.getElementById('btn-start-falling').addEventListener('click', () => startCountdownAndGame('falling', runFallingGame));
+document.getElementById('btn-quit-ingame').addEventListener('click', () => {
+  if (fallingRunning) endFallingGame();
+});
+
+/* ---------- 9) 게임 모드 3: 버블 파괴 ---------- */
+let bubbleScoreTotal = 0;
+let bubbleTimeLeft = GAME_DURATION;
+let bubbleTimerId = null;
+let bubbleRunning = false;
+const bubbleTargets = new Set();
+
+function buildBubbleBoard(){
+  board.innerHTML = '';
+  board.classList.add('board-free');
+  bubbleTargets.clear();
+}
+
+function scheduleBubbleSpawn(delayMs){
+  if (!bubbleRunning) return;
+  const gap = delayMs != null ? delayMs : rand(BUBBLE_SPAWN_GAP_MIN, BUBBLE_SPAWN_GAP_MAX) / speedMultiplier;
+  setTimeout(() => {
+    if (!bubbleRunning) return;
+    if (bubbleTargets.size >= MAX_ACTIVE_BUBBLES){ scheduleBubbleSpawn(150); return; }
+    spawnBubbleTarget();
+  }, gap);
+}
+
+function spawnBubbleTarget(){
+  if (!bubbleRunning) return;
+  const rect = board.getBoundingClientRect();
+  const shortSide = Math.min(rect.width, rect.height);
+  const sizeRatio = rand(BUBBLE_MIN_SIZE_RATIO, BUBBLE_MAX_SIZE_RATIO);
+  const size = sizeRatio * shortSide;
+  const norm = (sizeRatio - BUBBLE_MIN_SIZE_RATIO) / (BUBBLE_MAX_SIZE_RATIO - BUBBLE_MIN_SIZE_RATIO);
+  const score = Math.round(MAX_SCORE - norm * (MAX_SCORE - MIN_SCORE));
+  const life = (BUBBLE_MIN_DURATION + norm * (BUBBLE_MAX_DURATION - BUBBLE_MIN_DURATION)) / speedMultiplier;
+  const x = rand(0, Math.max(0, rect.width - size));
+  const y = rand(0, Math.max(0, rect.height - size));
+
+  const wrap = document.createElement('div');
+  wrap.className = 'target-img bubble-target';
+  wrap.style.width = size + 'px';
+  wrap.style.height = size + 'px';
+  wrap.style.left = x + 'px';
+  wrap.style.top = y + 'px';
+  const img = document.createElement('img');
+  img.src = pickTargetImage();
+  img.draggable = false;
+  img.addEventListener('dragstart', (e) => e.preventDefault());
+  img.addEventListener('mousedown', (e) => e.preventDefault());
+  wrap.appendChild(img);
+  board.appendChild(wrap);
+
+  wrap._score = score;
+  wrap._alive = true;
+  wrap._img = img;
+  bubbleTargets.add(wrap);
+  wrap._missTimer = setTimeout(() => missBubbleTarget(wrap), life);
+}
+
+function missBubbleTarget(wrap){
+  if (!wrap._alive) return;
+  wrap._alive = false;
+  bubbleTargets.delete(wrap);
+  wrap.classList.add('popOut');
+  setTimeout(() => wrap.remove(), 200);
+  scheduleBubbleSpawn();
+}
+
+function hitBubbleTarget(wrap){
+  if (!wrap._alive) return;
+  wrap._alive = false;
+  clearTimeout(wrap._missTimer);
+  bubbleTargets.delete(wrap);
+  bubbleScoreTotal += wrap._score;
+  document.getElementById('hud-score').textContent = '점수: ' + bubbleScoreTotal;
+  const c = targetCenterInBoard(wrap);
+  showFloatingScoreAt(board, c.x, c.y, wrap._score);
+  shatterTarget(board, wrap._img);
+  wrap.remove();
+  scheduleBubbleSpawn();
+}
+
+board.addEventListener('click', (e) => {
+  if (!bubbleRunning) return;
+  const wrapEl = e.target.closest('.bubble-target');
+  playShotSound();
+  if (!wrapEl || !bubbleTargets.has(wrapEl)) return;
+  playBreakSound();
+  hitBubbleTarget(wrapEl);
+});
+
+function runBubbleGame(){
+  showScreen('screen-game');
+  buildBubbleBoard();
+  bubbleScoreTotal = 0;
+  bubbleTimeLeft = GAME_DURATION;
+  document.getElementById('hud-score').textContent = '점수: 0';
+  document.getElementById('hud-time').textContent = '⏱ ' + bubbleTimeLeft + '초';
+  bubbleRunning = true;
+  for (let i = 0; i < MAX_ACTIVE_BUBBLES; i++) scheduleBubbleSpawn(i * 120);
+  bubbleTimerId = setInterval(() => {
+    bubbleTimeLeft--;
+    document.getElementById('hud-time').textContent = '⏱ ' + bubbleTimeLeft + '초';
+    if (bubbleTimeLeft <= 0) endBubbleGame();
+  }, 1000);
+}
+
+function endBubbleGame(){
+  bubbleRunning = false;
+  clearInterval(bubbleTimerId);
+  bubbleTargets.forEach(wrap => clearTimeout(wrap._missTimer));
+  bubbleTargets.clear();
+  board.innerHTML = ''; // 방금 miss 처리되어 popOut 애니메이션 중인 잔여 요소까지 한 번에 정리
+  board.classList.remove('board-free');
+  playSound('end');
+  showResultScreen(bubbleScoreTotal);
+}
+
+document.getElementById('btn-start-bubble').addEventListener('click', () => startCountdownAndGame('bubble', runBubbleGame));
+document.getElementById('btn-quit-ingame').addEventListener('click', () => {
+  if (bubbleRunning) endBubbleGame();
+});
 
 })();
 </script>
