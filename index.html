@@ -1619,55 +1619,50 @@ showScreen = function(id){
 };
 
 /* ---------- 6) 모바일 조준경 ---------- */
-// 평소엔 화면 정중앙에 떠 있다가, 손가락으로 화면을 짚는 즉시 그 터치 지점(들)에 조준경이 나타나고
-// 손을 떼면 그 조준경은 사라진다(다시 중앙 조준경만 남음). 모바일(터치 기기)에서만 동작.
+// 평소엔 화면 정중앙에 떠 있다가, 손가락으로 화면을 짚으면 그 터치 지점으로 옮겨가고
+// 손을 떼면 사라진다. 화면에는 항상 이 조준경 요소 하나만 존재하며 위치만 옮긴다
+// (터치마다 새 요소를 만들지 않아 조준경이 계속 쌓이는 문제를 방지).
+// 모바일(터치 기기)에서만 동작.
 if (isTouchDevice){
   const reticleBg = `url("${svgToDataUri(CURSOR_STYLES.find(s => s.id === 'circle-cross').svg)}")`;
 
-  const centerReticleEl = document.createElement('div');
-  centerReticleEl.className = 'mobile-reticle';
-  centerReticleEl.style.backgroundImage = reticleBg;
-  document.getElementById('app').appendChild(centerReticleEl);
+  const reticleEl = document.createElement('div');
+  reticleEl.className = 'mobile-reticle';
+  reticleEl.style.backgroundImage = reticleBg;
+  document.getElementById('app').appendChild(reticleEl);
 
-  const touchReticles = new Map();
-  function createTouchReticle(x, y){
-    const el = document.createElement('div');
-    el.className = 'mobile-reticle';
-    el.style.backgroundImage = reticleBg;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    document.getElementById('app').appendChild(el);
-    return el;
+  function moveReticleTo(x, y){
+    reticleEl.style.left = x + 'px';
+    reticleEl.style.top = y + 'px';
   }
   function onReticleTouchStart(e){
-    centerReticleEl.style.display = 'none';
-    for (const t of e.changedTouches){
-      touchReticles.set(t.identifier, createTouchReticle(t.clientX, t.clientY));
+    const t = e.touches[0] || e.changedTouches[0];
+    if (t){
+      moveReticleTo(t.clientX, t.clientY);
+      reticleEl.style.display = 'block';
     }
   }
   function onReticleTouchMove(e){
-    for (const t of e.changedTouches){
-      const el = touchReticles.get(t.identifier);
-      if (el){ el.style.left = t.clientX + 'px'; el.style.top = t.clientY + 'px'; }
-    }
+    const t = e.touches[0] || e.changedTouches[0];
+    if (t) moveReticleTo(t.clientX, t.clientY);
   }
   function onReticleTouchEnd(e){
-    for (const t of e.changedTouches){
-      const el = touchReticles.get(t.identifier);
-      if (el){ el.remove(); touchReticles.delete(t.identifier); }
+    if (e.touches.length > 0){
+      moveReticleTo(e.touches[0].clientX, e.touches[0].clientY);
+    } else {
+      reticleEl.style.display = 'none';
     }
-    if (touchReticles.size === 0) centerReticleEl.style.display = '';
   }
   board.addEventListener('touchstart', onReticleTouchStart, { passive:true });
   board.addEventListener('touchmove', onReticleTouchMove, { passive:true });
   board.addEventListener('touchend', onReticleTouchEnd, { passive:true });
   board.addEventListener('touchcancel', onReticleTouchEnd, { passive:true });
 
-  // 게임 화면을 벗어날 때 손을 뗀 적 없는 터치 조준경이 남아있으면 청소한다.
+  // 게임 화면을 벗어날 때 다음 게임을 위해 조준경을 기본 상태(정중앙, 숨김 해제 전)로 되돌린다.
   resetMobileReticles = function(){
-    touchReticles.forEach(el => el.remove());
-    touchReticles.clear();
-    centerReticleEl.style.display = '';
+    reticleEl.style.display = '';
+    reticleEl.style.left = '';
+    reticleEl.style.top = '';
   };
 }
 
