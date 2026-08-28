@@ -50,6 +50,7 @@
   .mode-btn .mode-sub{ display:block; font-size:0.6em; font-weight:600; opacity:0.85; margin-top:0.4vh; }
   .mode-btn-purple{ background:var(--purple); }
   .mode-btn-green{ background:#3FA34D; }
+  #btn-start-river{ display:none; } /* 추가 업데이트 전까지 게임 선택화면에서 숨김 */
 
   /* ---- 포인터 선택 화면 ---- */
   .pointer-grid{ display:flex; gap:2vw; flex-wrap:wrap; justify-content:center; margin-bottom:3vh; }
@@ -323,7 +324,7 @@
   @keyframes stoneWarn{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(0.85); opacity:0.55; } }
   .stone.sunk{ opacity:0; transform:scale(0.4); }
   .river-player{
-    position:absolute; top:50%; left:50%; width:70%; height:70%;
+    position:absolute; top:50%; left:50%; width:105%; height:105%;
     display:flex; align-items:center; justify-content:center;
     filter:drop-shadow(0 3px 1px rgba(0,0,0,0.3));
     z-index:5; transform:translate(-50%,-50%);
@@ -2271,12 +2272,6 @@ riverCatFaceEl.innerHTML = `
   <path d="M50 33 Q54 37 60 35" stroke="#2A1B0E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
 </svg>`;
 riverPlayerEl.appendChild(riverCatFaceEl);
-const RIVER_FACE_ROTATION = { up:0, right:90, down:180, left:270 };
-function setRiverFacing(dir){
-  const deg = RIVER_FACE_ROTATION[dir];
-  if (deg == null) return;
-  riverCatFaceEl.style.transform = 'rotate(' + deg + 'deg)';
-}
 
 function riverCycleLen(){ return riverDiff.visibleMs + riverDiff.sunkMs; }
 function isStoneUp(cell){
@@ -2466,7 +2461,6 @@ function riverMove(dir, dist){
   if (!riverRunning) return;
   const delta = RIVER_DIR_DELTA[dir];
   if (!delta) return;
-  setRiverFacing(dir);
   const targetRow = riverPlayerRow + delta[0] * dist;
   const targetCol = riverPlayerCol + delta[1] * dist;
   if (targetCol < 0 || targetCol >= riverDiff.cols) return;
