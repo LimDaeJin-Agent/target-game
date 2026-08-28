@@ -323,17 +323,25 @@
   @keyframes stoneWarn{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(0.85); opacity:0.55; } }
   .stone.sunk{ opacity:0; transform:scale(0.4); }
   .river-player{
-    position:absolute; top:50%; left:50%; width:66%; height:66%;
-    display:flex; align-items:center; justify-content:center; font-size:1.5em;
+    position:absolute; top:50%; left:50%; width:70%; height:70%;
+    display:flex; align-items:center; justify-content:center;
     filter:drop-shadow(0 3px 1px rgba(0,0,0,0.3));
     z-index:5; transform:translate(-50%,-50%);
   }
-  .river-player.jumping{ animation:catJump 0.32s ease-out; }
-  @keyframes catJump{
+  .river-player.jumping{ animation:catHop 0.5s ease-in-out; }
+  @keyframes catHop{
     0%{ transform:translate(-50%,-50%) translateY(0) scale(1,1); }
-    40%{ transform:translate(-50%,-50%) translateY(-55%) scale(1.05,0.92); }
+    45%{ transform:translate(-50%,-50%) translateY(-50%) scale(1.05,0.92); }
     100%{ transform:translate(-50%,-50%) translateY(0) scale(1,1); }
   }
+  /* 이동 방향을 바라보도록 회전만 담당(점프 상하 이동과 분리해 서로 transform이 덮어쓰지 않게 함) */
+  .river-cat-face{ width:100%; height:100%; transition:transform 0.12s ease; }
+  .river-cat-svg{ width:100%; height:100%; overflow:visible; display:block; }
+  .cat-front-legs, .cat-back-legs{ transform:translateY(0); }
+  .jumping .cat-front-legs{ animation:catFrontLegs 0.5s ease-in-out; }
+  .jumping .cat-back-legs{ animation:catBackLegs 0.5s ease-in-out; }
+  @keyframes catFrontLegs{ 0%{ transform:translateY(0); } 45%{ transform:translateY(-9px); } 100%{ transform:translateY(0); } }
+  @keyframes catBackLegs{ 0%{ transform:translateY(0); } 45%{ transform:translateY(9px); } 100%{ transform:translateY(0); } }
   .river-splash{
     position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,#fff,#8ED0F0 70%);
     animation:riverSplash .4s ease-out forwards; z-index:6;
@@ -2231,9 +2239,44 @@ let riverLastKeyDir = null;
 let riverLastKeyTime = 0;
 let riverLastJumpTime = 0;
 
+// 위에서 내려다보는 시점이라 몸통/머리는 이동 방향으로 회전시키고, 앞다리(머리 쪽)와
+// 뒷다리(꼬리 쪽)를 분리된 그룹으로 두어 점프할 때만 각각 앞/뒤로 뻗었다 착지 시 다시
+// 감추도록 만든다. 기본은 위쪽(진행 방향)을 바라보는 모습으로 그린다.
 const riverPlayerEl = document.createElement('div');
 riverPlayerEl.className = 'river-player';
-riverPlayerEl.textContent = '🐱';
+const riverCatFaceEl = document.createElement('div');
+riverCatFaceEl.className = 'river-cat-face';
+riverCatFaceEl.innerHTML = `
+<svg class="river-cat-svg" viewBox="0 0 100 100">
+  <path d="M50 82 Q28 97 15 84" fill="none" stroke="#D98A3D" stroke-width="9" stroke-linecap="round"/>
+  <g class="cat-back-legs">
+    <ellipse cx="36" cy="86" rx="8" ry="15" fill="#D98A3D"/>
+    <ellipse cx="64" cy="86" rx="8" ry="15" fill="#D98A3D"/>
+  </g>
+  <ellipse cx="50" cy="54" rx="27" ry="33" fill="#EFAF5C"/>
+  <ellipse cx="50" cy="64" rx="15" ry="19" fill="#FBE3BE"/>
+  <g class="cat-front-legs">
+    <ellipse cx="38" cy="20" rx="8" ry="15" fill="#EFAF5C"/>
+    <ellipse cx="62" cy="20" rx="8" ry="15" fill="#EFAF5C"/>
+  </g>
+  <polygon points="30,20 38,-4 46,16" fill="#EFAF5C"/>
+  <polygon points="70,20 62,-4 54,16" fill="#EFAF5C"/>
+  <polygon points="33.5,14 38,3 41.5,12.5" fill="#FBCFE0"/>
+  <polygon points="66.5,14 62,3 58.5,12.5" fill="#FBCFE0"/>
+  <circle cx="50" cy="24" r="21" fill="#EFAF5C"/>
+  <circle cx="42" cy="22" r="2.6" fill="#2A1B0E"/>
+  <circle cx="58" cy="22" r="2.6" fill="#2A1B0E"/>
+  <polygon points="47,29 53,29 50,33" fill="#F06292"/>
+  <path d="M50 33 Q46 37 40 35" stroke="#2A1B0E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M50 33 Q54 37 60 35" stroke="#2A1B0E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+</svg>`;
+riverPlayerEl.appendChild(riverCatFaceEl);
+const RIVER_FACE_ROTATION = { up:0, right:90, down:180, left:270 };
+function setRiverFacing(dir){
+  const deg = RIVER_FACE_ROTATION[dir];
+  if (deg == null) return;
+  riverCatFaceEl.style.transform = 'rotate(' + deg + 'deg)';
+}
 
 function riverCycleLen(){ return riverDiff.visibleMs + riverDiff.sunkMs; }
 function isStoneUp(cell){
@@ -2311,7 +2354,7 @@ function animatePlayerJump(){
   riverPlayerEl.classList.remove('jumping');
   void riverPlayerEl.offsetWidth; // 애니메이션을 강제로 재시작해서 연속 이동에도 매번 점프 모션이 보이게 함
   riverPlayerEl.classList.add('jumping');
-  setTimeout(() => riverPlayerEl.classList.remove('jumping'), 320);
+  setTimeout(() => riverPlayerEl.classList.remove('jumping'), 500);
 }
 function showRiverSplash(){
   const cellEl = riverCellEl(riverPlayerRow, riverPlayerCol);
@@ -2423,6 +2466,7 @@ function riverMove(dir, dist){
   if (!riverRunning) return;
   const delta = RIVER_DIR_DELTA[dir];
   if (!delta) return;
+  setRiverFacing(dir);
   const targetRow = riverPlayerRow + delta[0] * dist;
   const targetCol = riverPlayerCol + delta[1] * dist;
   if (targetCol < 0 || targetCol >= riverDiff.cols) return;
