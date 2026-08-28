@@ -323,17 +323,32 @@
   @keyframes stoneWarn{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(0.85); opacity:0.55; } }
   .stone.sunk{ opacity:0; transform:scale(0.4); }
   .river-player{
-    position:relative; width:70%; height:70%; border-radius:50%;
-    background:#FF6FA5; box-shadow:0 3px 0 rgba(0,0,0,0.25);
-    display:flex; align-items:center; justify-content:center; font-size:1.3em;
-    z-index:5; transition:transform .1s ease;
+    position:absolute; top:50%; left:50%; width:66%; height:66%;
+    display:flex; align-items:center; justify-content:center; font-size:1.5em;
+    filter:drop-shadow(0 3px 1px rgba(0,0,0,0.3));
+    z-index:5; transform:translate(-50%,-50%);
   }
-  .river-player.jumping{ transform:scale(1.15) translateY(-15%); }
+  .river-player.jumping{ animation:catJump 0.32s ease-out; }
+  @keyframes catJump{
+    0%{ transform:translate(-50%,-50%) translateY(0) scale(1,1); }
+    40%{ transform:translate(-50%,-50%) translateY(-55%) scale(1.05,0.92); }
+    100%{ transform:translate(-50%,-50%) translateY(0) scale(1,1); }
+  }
   .river-splash{
     position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,#fff,#8ED0F0 70%);
     animation:riverSplash .4s ease-out forwards; z-index:6;
   }
   @keyframes riverSplash{ 0%{ transform:scale(0.3); opacity:1; } 100%{ transform:scale(2.2); opacity:0; } }
+  .river-droplet{
+    position:absolute; top:50%; left:50%; width:16%; height:16%; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,#fff,#6EC1EA 75%);
+    box-shadow:0 0 2px rgba(0,0,0,0.15);
+    animation:riverDropletFly .5s ease-out forwards; z-index:6;
+  }
+  @keyframes riverDropletFly{
+    0%{ transform:translate(-50%,-50%) translate(0,0) scale(1); opacity:1; }
+    100%{ transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0.25); opacity:0; }
+  }
 
   #river-mobile-controls{
     position:fixed; left:0; right:0; bottom:2vh; display:none;
@@ -2128,7 +2143,7 @@ const RIVER_LEVELS_META = [
 function riverDifficulty(num){
   const n = Math.max(1, Math.min(20, num));
   const rows = Math.round(6 + (n - 1) * (10 / 19));          // 6줄 -> 16줄
-  const cols = n <= 10 ? 5 : 6;
+  const cols = n <= 10 ? 8 : 9;
   const visibleMs = Math.round(3200 - (n - 1) * (2000 / 19)); // 3.2초 -> 1.2초
   const sunkMs = Math.round(900 + (n - 1) * (900 / 19));      // 0.9초 -> 1.8초
   const fakeChance = Math.max(0, Math.min(0.28, (n - 3) * 0.0165));
@@ -2181,11 +2196,19 @@ function generateRiverGrid(diff){
     }
     pathCol = Math.max(0, Math.min(diff.cols - 1, pathCol + (Math.floor(Math.random() * 3) - 1)));
     const cells = new Array(diff.cols).fill(null);
-    cells[pathCol] = { kind:'real', phase: Math.random() };
-    for (let c = 0; c < diff.cols; c++){
-      if (c === pathCol) continue;
-      if (Math.random() < 0.55){
-        cells[c] = (Math.random() < diff.fakeChance) ? { kind:'fake' } : { kind:'real', phase: Math.random() };
+    if (r === totalRows - 2){
+      // 마지막 징검다리는 가로로 3칸 폭의 넓은 발판으로 만들어 마무리 구간에 여유를 준다.
+      const left = Math.max(0, Math.min(diff.cols - 3, pathCol - 1));
+      for (let c = left; c < left + 3 && c < diff.cols; c++){
+        cells[c] = { kind:'real', phase: Math.random() };
+      }
+    } else {
+      cells[pathCol] = { kind:'real', phase: Math.random() };
+      for (let c = 0; c < diff.cols; c++){
+        if (c === pathCol) continue;
+        if (Math.random() < 0.55){
+          cells[c] = (Math.random() < diff.fakeChance) ? { kind:'fake' } : { kind:'real', phase: Math.random() };
+        }
       }
     }
     grid.push({ type:'river', cells });
@@ -2210,7 +2233,7 @@ let riverLastJumpTime = 0;
 
 const riverPlayerEl = document.createElement('div');
 riverPlayerEl.className = 'river-player';
-riverPlayerEl.textContent = '🧍';
+riverPlayerEl.textContent = '🐱';
 
 function riverCycleLen(){ return riverDiff.visibleMs + riverDiff.sunkMs; }
 function isStoneUp(cell){
@@ -2285,8 +2308,10 @@ function placePlayer(){
   if (cellEl) cellEl.appendChild(riverPlayerEl);
 }
 function animatePlayerJump(){
+  riverPlayerEl.classList.remove('jumping');
+  void riverPlayerEl.offsetWidth; // 애니메이션을 강제로 재시작해서 연속 이동에도 매번 점프 모션이 보이게 함
   riverPlayerEl.classList.add('jumping');
-  setTimeout(() => riverPlayerEl.classList.remove('jumping'), 150);
+  setTimeout(() => riverPlayerEl.classList.remove('jumping'), 320);
 }
 function showRiverSplash(){
   const cellEl = riverCellEl(riverPlayerRow, riverPlayerCol);
@@ -2295,6 +2320,18 @@ function showRiverSplash(){
   splash.className = 'river-splash';
   cellEl.appendChild(splash);
   splash.addEventListener('animationend', () => splash.remove());
+  // 물에 빠졌다는 걸 한눈에 알 수 있도록 물방울이 사방으로 튀는 그래픽을 추가한다.
+  const dropletCount = 8;
+  for (let i = 0; i < dropletCount; i++){
+    const drop = document.createElement('div');
+    drop.className = 'river-droplet';
+    const angle = (Math.PI * 2 * i) / dropletCount + (Math.random() * 0.4 - 0.2);
+    const dist = 55 + Math.random() * 45;
+    drop.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    drop.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    cellEl.appendChild(drop);
+    drop.addEventListener('animationend', () => drop.remove());
+  }
 }
 
 function updateRiverHeartsUI(){
