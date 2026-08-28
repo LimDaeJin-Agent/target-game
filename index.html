@@ -49,6 +49,7 @@
   .mode-btn{ display:flex; flex-direction:column; align-items:center; line-height:1.3; padding:1.6vh 3vw; }
   .mode-btn .mode-sub{ display:block; font-size:0.6em; font-weight:600; opacity:0.85; margin-top:0.4vh; }
   .mode-btn-purple{ background:var(--purple); }
+  .mode-btn-green{ background:#3FA34D; }
 
   /* ---- 포인터 선택 화면 ---- */
   .pointer-grid{ display:flex; gap:2vw; flex-wrap:wrap; justify-content:center; margin-bottom:3vh; }
@@ -250,6 +251,115 @@
   .option-slider-row input[type=range]{ flex:1; }
   .option-slider-row .slider-value{ min-width:52px; font-weight:800; color:var(--ink); }
   .option-sub-label{ font-size:13px; color:#777; margin:0.8vh 0 0.3vh; }
+
+  /* ---- 개울 건너기: 단계 설명 화면 ---- */
+  .river-level-card{
+    text-align:left; background:rgba(255,255,255,0.6); border-radius:14px;
+    padding:1.2vh 3vw; margin-bottom:1.2vh;
+  }
+  .river-level-card h4{ margin:0 0 0.5vh; color:var(--ink); font-size:clamp(15px,1.9vw,19px); }
+  .river-level-card p{ margin:0; color:#444; font-size:clamp(13px,1.5vw,15px); line-height:1.5; }
+  .river-level-card .river-stat-line{ font-size:clamp(12px,1.4vw,14px); color:#3FA34D; font-weight:700; margin-top:0.4vh; }
+
+  /* ---- 개울 건너기: 게임 화면 ---- */
+  #screen-river{ padding:1.5vh 1.5vw; justify-content:flex-start; }
+  #river-topbar{
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    gap:1.5vw; flex-wrap:wrap; margin-bottom:1vh; flex:0 0 auto;
+  }
+  #river-hearts{ font-size:clamp(16px,3vw,24px); letter-spacing:2px; color:#FF3B5C; text-shadow:1px 1px 0 #fff; }
+  #river-level-badge, #river-score-badge{
+    background:#fff; padding:0.6vh 1.6vw; border-radius:999px; box-shadow:0 4px 0 rgba(0,0,0,0.1);
+    font-weight:800; color:var(--ink); font-size:clamp(13px,1.8vw,18px);
+  }
+  #btn-quit-river{ padding:0.6vh 2.4vw; font-size:clamp(12px,1.5vw,15px); }
+  #river-stage{
+    flex:1 1 auto; width:100%; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; min-height:0;
+  }
+  #river-board{
+    display:grid; gap:0; width:100%; height:100%; max-width:520px;
+    box-sizing:border-box; border-radius:16px; padding:0.8vmin; position:relative; overflow:hidden;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.16) 0 10px, rgba(255,255,255,0) 10px 34px),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.08) 0 4px, rgba(255,255,255,0) 4px 46px),
+      linear-gradient(180deg,#8FD3F4,#4FA8DA 55%,#3C8FC4 100%);
+    background-size:180% 180%, 220% 220%, 100% 100%;
+    animation:riverFlow 7s linear infinite;
+  }
+  @keyframes riverFlow{
+    0%{ background-position:0% 0%, 0% 0%, 0 0; }
+    100%{ background-position:-260px 200px, 300px -220px, 0 0; }
+  }
+  .river-cell{
+    position:relative; background:transparent;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .river-cell.bank{
+    background:
+      radial-gradient(circle at 25% 30%, rgba(255,255,255,0.25), transparent 40%),
+      radial-gradient(circle at 70% 65%, rgba(0,0,0,0.08), transparent 45%),
+      linear-gradient(160deg,#9CD86A,#6FAE3E 70%);
+  }
+  .river-cell.checkpoint .river-log{
+    width:88%; height:60%; border-radius:12px;
+    background:repeating-linear-gradient(90deg,#C9A876 0 6px,#B08D5E 6px 12px);
+    box-shadow:0 3px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(0,0,0,0.1);
+  }
+  /* 조준경 등 다른 곳에서 재사용하는 원형 스타일과 겹치지 않도록 개울 전용 흔들림 래퍼를 분리:
+     stone-wrap이 크기/위치/회전(울퉁불퉁 배치)을 맡고, 내부 stone이 가라앉기 애니메이션을 맡는다. */
+  .stone-wrap{ position:absolute; top:50%; left:50%; }
+  .stone{
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 32% 28%,#E4C69A,#A9825A 55%,#7C5B36 100%);
+    box-shadow:0 3px 0 rgba(0,0,0,0.3), inset 0 -3px 4px rgba(0,0,0,0.15), inset 0 2px 3px rgba(255,255,255,0.35);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .stone.fake{
+    background:radial-gradient(circle at 32% 28%,#B7B7B7,#8A8A8A 55%,#5B5B5B 100%);
+    filter:saturate(0.4) brightness(0.92);
+  }
+  .stone.warning{ animation:stoneWarn 0.35s ease-in-out infinite alternate; }
+  @keyframes stoneWarn{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(0.85); opacity:0.55; } }
+  .stone.sunk{ opacity:0; transform:scale(0.4); }
+  .river-player{
+    position:relative; width:70%; height:70%; border-radius:50%;
+    background:#FF6FA5; box-shadow:0 3px 0 rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center; font-size:1.3em;
+    z-index:5; transition:transform .1s ease;
+  }
+  .river-player.jumping{ transform:scale(1.15) translateY(-15%); }
+  .river-splash{
+    position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,#fff,#8ED0F0 70%);
+    animation:riverSplash .4s ease-out forwards; z-index:6;
+  }
+  @keyframes riverSplash{ 0%{ transform:scale(0.3); opacity:1; } 100%{ transform:scale(2.2); opacity:0; } }
+
+  #river-mobile-controls{
+    position:fixed; left:0; right:0; bottom:2vh; display:none;
+    justify-content:space-between; align-items:flex-end; padding:0 4vw; z-index:200;
+  }
+  body.touch-device.in-river #river-mobile-controls{ display:flex; }
+  #river-dpad{
+    display:grid; grid-template-columns:52px 52px 52px; grid-template-rows:52px 52px;
+    gap:4px; pointer-events:auto;
+  }
+  #river-btn-up{ grid-column:2; grid-row:1; }
+  #river-btn-left{ grid-column:1; grid-row:2; }
+  #river-btn-down{ grid-column:2; grid-row:2; }
+  #river-btn-right{ grid-column:3; grid-row:2; }
+  .river-ctrl-btn{
+    width:52px; height:52px; border-radius:14px; border:none;
+    background:rgba(255,255,255,0.88); font-size:20px; font-weight:900;
+    box-shadow:0 4px 0 rgba(0,0,0,0.18); color:var(--ink);
+  }
+  .river-ctrl-btn:active{ transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  #river-btn-jump{
+    width:78px; height:78px; border-radius:50%; border:none; pointer-events:auto;
+    background:var(--pink); color:#fff; font-weight:900; font-size:15px;
+    box-shadow:0 5px 0 rgba(0,0,0,0.22);
+  }
+  #river-btn-jump:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.22); }
 </style>
 </head>
 <body>
@@ -262,6 +372,7 @@
       <button class="btn mode-btn" id="btn-start-game">1️⃣ 동물 과녁 맞추기<span class="mode-sub">칸칸이 나오는 과녁을 터치!</span></button>
       <button class="btn mode-btn secondary" id="btn-start-falling">2️⃣ 질주 파괴<span class="mode-sub">쏟아지는 과녁을 터치!</span></button>
       <button class="btn mode-btn mode-btn-purple" id="btn-start-bubble">3️⃣ 버블 파괴<span class="mode-sub">크게 뜨는 과녁을 팡팡!</span></button>
+      <button class="btn mode-btn mode-btn-green" id="btn-start-river">4️⃣ 개울 건너기<span class="mode-sub">돌다리를 밟고 반대편으로!</span></button>
     </div>
     <h2>마우스 포인터 모양을 골라주세요</h2>
     <div class="pointer-grid" id="pointer-grid"><div class="pointer-choice selected" data-id="circle-dot"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2215%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2215%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%224%22%20fill%3D%22%23FF3B3B%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="circle-cross"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2213%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2213%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%222%22%20x2%3D%2220%22%20y2%3D%2238%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%222%22%20y1%3D%2220%22%20x2%3D%2238%22%20y2%3D%2220%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%222%22%20x2%3D%2220%22%20y2%3D%2238%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%222%22%20y1%3D%2220%22%20x2%3D%2238%22%20y2%3D%2220%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="cross"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%224%22%20x2%3D%2220%22%20y2%3D%2236%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%224%22%20y1%3D%2220%22%20x2%3D%2236%22%20y2%3D%2220%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2220%22%20y1%3D%224%22%20x2%3D%2220%22%20y2%3D%2236%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%224%22%20y1%3D%2220%22%20x2%3D%2236%22%20y2%3D%2220%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E"></div><div class="pointer-choice" data-id="donut"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%226%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%23FF3B3B%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%223%22%20fill%3D%22%23FF3B3B%22%2F%3E%3C%2Fsvg%3E"></div></div>
@@ -381,7 +492,8 @@
         <p>&nbsp;&nbsp;· 1번 동물 과녁 맞추기: 격자 칸칸이 나오는 과녁을 클릭/터치!</p>
         <p>&nbsp;&nbsp;· 2번 질주 파괴: 위에서 쏟아져 떨어지는 과녁을 지나가기 전에 맞춰요.</p>
         <p>&nbsp;&nbsp;· 3번 버블 파괴: 화면 여기저기 크게 뜨는 과녁을 터치로 팡팡 터뜨려요.</p>
-        <p>2. 게임을 고르면 3, 2, 1, START! 카운트다운 후 30초 동안 놀이가 시작돼요.</p>
+        <p>&nbsp;&nbsp;· 4번 개울 건너기: 돌다리를 밟고 반대편까지 건너가는 20단계 모험이에요. 자세한 설명은 첫 화면의 "📜 개울 건너기 단계 설명" 버튼에서 볼 수 있어요.</p>
+        <p>2. 게임을 고르면 3, 2, 1, START! 카운트다운 후 놀이가 시작돼요. (1,2,3번은 30초 제한시간, 4번은 시간 제한 없이 진행돼요)</p>
         <p>3. 마우스는 왼쪽 클릭, 모바일은 화면을 터치하면 그 자리에서 바로 발사돼요.</p>
         <p>4. 작고 빨리 사라지는 과녁일수록 점수가 높고, 크고 오래 있는 과녁일수록 점수가 낮아요.</p>
         <p>5. 30초 동안 최대한 많은 점수를 모아보세요. 빈 곳을 클릭해도 감점은 없어요.</p>
@@ -390,6 +502,8 @@
         <p>8. 옵션에서 과녁 그림 폴더나 시작음/종료음을 직접 골라 꾸밀 수 있고, 이 설정은 1,2,3번 게임에 공통으로 적용돼요.</p>
         <p>9. 옵션의 "⚡ 게임 진행 속도"로 과녁이 나오고 사라지는 속도를 조절할 수 있어요. 기본은 2배 빠른 속도예요.</p>
         <p>10. 첫 화면의 "⚡ 민첩도 테스트"를 누르면 화살표가 알려주는 위치에 순간적으로 나타나는 과녁을 재빨리 맞히는 미니게임을 즐길 수 있어요.</p>
+        <p>11. 개울 건너기는 PC에서 W(앞)·A(왼쪽)·S(뒤)·D(오른쪽)로 이동하고, 모바일은 왼쪽 하단 방향키와 오른쪽 하단 점프 버튼을 사용해요. 같은 방향키(또는 점프 버튼)를 빠르게 두 번 누르면 2단 점프로 한 칸 더 멀리 뛰어요.</p>
+        <p>12. 개울 건너기 돌다리는 일정 시간마다 떠올랐다 가라앉기를 반복해요. 가라앉은 돌이나 흐릿한 색의 가짜 돌을 밟으면 물에 빠져 목숨을 하나 잃고, 가장 최근에 지난 체크포인트(노란 칸)에서 다시 시작해요. 목숨 5개(❤️X5, 왼쪽 위)를 모두 잃으면 1단계부터 다시 도전해요.</p>
       </div>
       <div class="btn-row">
         <button class="btn" id="btn-close-help">닫기</button>
@@ -446,6 +560,50 @@
     <div class="btn-row" style="margin-top:2vh;">
       <button class="btn" id="btn-agility-retry">🔄 재도전</button>
       <button class="btn ghost" id="btn-agility-quit">🏁 종료</button>
+    </div>
+  </section>
+
+  <section id="screen-river-menu" class="screen">
+    <h1>🏞️ 개울 건너기</h1>
+    <p class="desc" style="max-width:480px;">돌다리를 밟고 개울 반대편으로! 목숨 5개로 1단계부터 20단계까지 도전해요.</p>
+    <div class="btn-row">
+      <button class="btn mode-btn-green" id="btn-river-menu-start">▶ 시작하기</button>
+    </div>
+    <div class="btn-row" style="margin-top:1.2vh;">
+      <button class="btn ghost" id="btn-river-menu-levels">📜 설명</button>
+      <button class="btn ghost" id="btn-river-menu-back">🏁 종료</button>
+    </div>
+  </section>
+
+  <section id="screen-river-levels" class="screen">
+    <div class="options-card">
+      <h2>📜 개울 건너기: 1~20단계 안내</h2>
+      <p class="desc" style="margin:0 0 1.5vh;">단계가 오를수록 돌다리 개수가 늘고, 뜨고 가라앉는 속도가 빨라지고, 가짜 돌(함정) 비율이 높아져요.</p>
+      <div id="river-level-list"></div>
+      <div class="btn-row">
+        <button class="btn" id="btn-close-river-levels">닫기</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-river" class="screen">
+    <div id="river-topbar">
+      <div id="river-hearts">❤❤❤❤❤</div>
+      <div id="river-level-badge">1단계</div>
+      <div id="river-score-badge">점수: 0</div>
+      <button class="btn ghost" id="btn-quit-river">⏹ 종료</button>
+    </div>
+    <div id="river-stage">
+      <div id="river-board"></div>
+    </div>
+    <div id="river-mobile-controls">
+      <div id="river-dpad">
+        <button class="river-ctrl-btn" id="river-btn-up" data-dir="up">▲</button>
+        <button class="river-ctrl-btn" id="river-btn-left" data-dir="left">◀</button>
+        <button class="river-ctrl-btn" id="river-btn-down" data-dir="down">▼</button>
+        <button class="river-ctrl-btn" id="river-btn-right" data-dir="right">▶</button>
+      </div>
+      <button id="river-btn-jump">점프</button>
     </div>
   </section>
 
@@ -1061,7 +1219,10 @@ function requestGamePointerLock(){
   try{
     virtualCursorX = window.innerWidth / 2;
     virtualCursorY = window.innerHeight / 2;
-    if (document.body.requestPointerLock) document.body.requestPointerLock();
+    if (document.body.requestPointerLock){
+      const p = document.body.requestPointerLock();
+      if (p && typeof p.catch === 'function') p.catch(() => {}); // 최신 브라우저는 Promise를 반환하며 실패 시 콘솔에 처리되지 않은 거부로 남는 것을 방지
+    }
   }catch(err){ /* 포인터 락 미지원 환경이면 평범한 마우스 추적으로 자연히 대체됨 */ }
 }
 function releaseGamePointerLock(){
@@ -1614,8 +1775,9 @@ let resetMobileReticles = null;
 const baseShowScreen = showScreen;
 showScreen = function(id){
   baseShowScreen(id);
-  setViewportLocked(id === 'screen-countdown' || id === 'screen-game');
+  setViewportLocked(id === 'screen-countdown' || id === 'screen-game' || id === 'screen-river');
   if (id !== 'screen-game' && resetMobileReticles) resetMobileReticles();
+  document.body.classList.toggle('in-river', id === 'screen-river');
 };
 
 /* ---------- 6) 모바일 조준경 ---------- */
@@ -1933,6 +2095,407 @@ function endBubbleGame(){
 document.getElementById('btn-start-bubble').addEventListener('click', () => startCountdownAndGame('bubble', runBubbleGame));
 document.getElementById('btn-quit-ingame').addEventListener('click', () => {
   if (bubbleRunning) endBubbleGame();
+});
+
+/* ---------- 10) 게임 모드 4: 개울 건너기 ---------- */
+// 시작 뚝(0행)과 도착 뚝(마지막 행) 사이에 돌다리 행이 놓이고, 일부 행은 항상 안전한
+// 체크포인트다. 각 돌다리 행에는 "반드시 건널 수 있는 실제 돌 하나(경로)"를 먼저 깔고,
+// 나머지 칸에는 장식/함정용 돌(실제 돌 또는 밟으면 바로 부서지는 가짜 돌)을 추가로 배치해
+// 단계가 항상 이론상 완주 가능하도록 만든다.
+const RIVER_LEVELS_META = [
+  { theme:'첫걸음 시냇물', flavor:'아주 얕고 잔잔한 개울에서 돌다리 건너기의 기본을 익혀요.' },
+  { theme:'봄나들이 개울', flavor:'따뜻한 봄볕 아래, 아직은 여유롭게 건널 수 있어요.' },
+  { theme:'징검다리 숲길', flavor:'숲 사이로 흐르는 개울, 돌 간격이 조금씩 벌어지기 시작해요.' },
+  { theme:'이끼 낀 바위밭', flavor:'미끄러운 이끼 돌 사이로 진짜 돌다리를 잘 찾아야 해요.' },
+  { theme:'안개 낀 강가', flavor:'뿌옇게 낀 안개 속, 가짜 돌이 하나둘 섞이기 시작해요.' },
+  { theme:'여울목 급류', flavor:'물살이 빨라지면서 돌다리가 뜨고 가라앉는 주기도 빨라져요.' },
+  { theme:'반딧불이 밤강', flavor:'어두운 밤, 은은한 불빛 사이로 조심스레 건너야 해요.' },
+  { theme:'폭포 아래 웅덩이', flavor:'세찬 폭포 소리와 함께 정신을 바짝 차려야 하는 구간이에요.' },
+  { theme:'자갈여울 삼거리', flavor:'여러 갈래 길이 있지만 안전하게 이어지는 길은 하나뿐이에요.' },
+  { theme:'소용돌이 나루', flavor:'절반 지점! 소용돌이치는 물살 위 돌다리가 만만치 않아요.' },
+  { theme:'얼음 개울', flavor:'살얼음이 낀 돌다리, 뜨고 가라앉는 시간이 훨씬 짧아져요.' },
+  { theme:'늪지대 여울', flavor:'끈적한 늪 사이, 가짜 돌 비율이 눈에 띄게 늘어나요.' },
+  { theme:'협곡 급류', flavor:'좁은 협곡을 타고 흐르는 거센 물살을 건너야 해요.' },
+  { theme:'폭풍 전야 강가', flavor:'금방이라도 폭풍이 몰아칠 듯, 돌다리가 오래 못 버텨요.' },
+  { theme:'가시덤불 여울', flavor:'양옆은 가시덤불! 곁눈질할 틈 없이 앞만 보고 건너요.' },
+  { theme:'유령 나루터', flavor:'괴담이 도는 나루터, 진짜와 가짜 돌을 구분하기 더 어려워요.' },
+  { theme:'태풍 속 개울', flavor:'거센 비바람 속에서도 돌다리는 계속 뜨고 가라앉아요.' },
+  { theme:'심연의 강', flavor:'유난히 길게 이어지는 강, 체력과 집중력 싸움이에요.' },
+  { theme:'최후의 여울', flavor:'전설의 강을 앞둔 마지막 관문, 방심은 금물이에요.' },
+  { theme:'전설의 강 건너기', flavor:'모든 것을 쏟아부어야 하는 최종 단계. 건너편에서 만나요!' }
+];
+
+function riverDifficulty(num){
+  const n = Math.max(1, Math.min(20, num));
+  const rows = Math.round(6 + (n - 1) * (10 / 19));          // 6줄 -> 16줄
+  const cols = n <= 10 ? 5 : 6;
+  const visibleMs = Math.round(3200 - (n - 1) * (2000 / 19)); // 3.2초 -> 1.2초
+  const sunkMs = Math.round(900 + (n - 1) * (900 / 19));      // 0.9초 -> 1.8초
+  const fakeChance = Math.max(0, Math.min(0.28, (n - 3) * 0.0165));
+  const checkpoints = n <= 10 ? 2 : 3;
+  const scorePerStone = 10 * n;
+  const clearBonus = 100 * n;
+  return { rows, cols, visibleMs, sunkMs, fakeChance, checkpoints, scorePerStone, clearBonus };
+}
+
+function riverLevelStatsText(num){
+  const d = riverDifficulty(num);
+  return `돌다리 ${d.rows}줄 · 가로 ${d.cols}칸 · 뜨는시간 ${(d.visibleMs / 1000).toFixed(1)}초 / 잠기는시간 ${(d.sunkMs / 1000).toFixed(1)}초 · 가짜돌 약 ${Math.round(d.fakeChance * 100)}% · 체크포인트 ${d.checkpoints}개 · 돌 1개당 ${d.scorePerStone}점 · 클리어 보너스 ${d.clearBonus}점`;
+}
+
+function buildRiverLevelListUI(){
+  const container = document.getElementById('river-level-list');
+  container.innerHTML = RIVER_LEVELS_META.map((meta, i) => {
+    const num = i + 1;
+    return `<div class="river-level-card">
+      <h4>${num}단계 · ${meta.theme}</h4>
+      <p>${meta.flavor}</p>
+      <p class="river-stat-line">${riverLevelStatsText(num)}</p>
+    </div>`;
+  }).join('');
+}
+buildRiverLevelListUI();
+
+document.getElementById('btn-start-river').addEventListener('click', () => showScreen('screen-river-menu'));
+document.getElementById('btn-river-menu-back').addEventListener('click', () => showScreen('screen-pointer'));
+document.getElementById('btn-river-menu-levels').addEventListener('click', () => showScreen('screen-river-levels'));
+document.getElementById('btn-close-river-levels').addEventListener('click', () => showScreen('screen-river-menu'));
+
+function generateRiverGrid(diff){
+  const totalRows = diff.rows + 2; // 시작 뚝 + 돌다리 행들 + 도착 뚝
+  const checkpointRows = new Set();
+  for (let i = 1; i <= diff.checkpoints; i++){
+    const r = Math.round(diff.rows * i / (diff.checkpoints + 1));
+    checkpointRows.add(Math.max(1, Math.min(diff.rows, r)));
+  }
+  const grid = [];
+  let pathCol = Math.floor(diff.cols / 2);
+  for (let r = 0; r < totalRows; r++){
+    if (r === 0 || r === totalRows - 1){
+      grid.push({ type:'bank' });
+      continue;
+    }
+    if (checkpointRows.has(r)){
+      grid.push({ type:'checkpoint' });
+      continue;
+    }
+    pathCol = Math.max(0, Math.min(diff.cols - 1, pathCol + (Math.floor(Math.random() * 3) - 1)));
+    const cells = new Array(diff.cols).fill(null);
+    cells[pathCol] = { kind:'real', phase: Math.random() };
+    for (let c = 0; c < diff.cols; c++){
+      if (c === pathCol) continue;
+      if (Math.random() < 0.55){
+        cells[c] = (Math.random() < diff.fakeChance) ? { kind:'fake' } : { kind:'real', phase: Math.random() };
+      }
+    }
+    grid.push({ type:'river', cells });
+  }
+  return grid;
+}
+
+let riverDiff = null;
+let riverGrid = [];
+let riverLevelNum = 1;
+let riverLives = 5;
+let riverScore = 0;
+let riverRunning = false;
+let riverPlayerRow = 0;
+let riverPlayerCol = 0;
+let riverLastCheckpointRow = 0;
+let riverStartTime = 0;
+let riverTickId = null;
+let riverLastKeyDir = null;
+let riverLastKeyTime = 0;
+let riverLastJumpTime = 0;
+
+const riverPlayerEl = document.createElement('div');
+riverPlayerEl.className = 'river-player';
+riverPlayerEl.textContent = '🧍';
+
+function riverCycleLen(){ return riverDiff.visibleMs + riverDiff.sunkMs; }
+function isStoneUp(cell){
+  const elapsed = performance.now() - riverStartTime;
+  const cycleLen = riverCycleLen();
+  const t = (elapsed + cell.phase * cycleLen) % cycleLen;
+  return t < riverDiff.visibleMs;
+}
+
+// 실제 개울처럼 보이도록 돌마다 크기·모양(울퉁불퉁한 border-radius)·회전·위치를 무작위로 준다.
+// 흔들림(크기/회전/위치)은 바깥 wrap이 맡고, 가라앉기 애니메이션은 안쪽 stone이 맡아
+// transform 속성이 서로 덮어쓰지 않게 분리한다.
+function randomBlobRadius(){
+  const r = () => 40 + Math.round(Math.random() * 30);
+  return `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
+}
+function createRiverStoneEl(cell){
+  const wrap = document.createElement('div');
+  wrap.className = 'stone-wrap';
+  const size = 56 + Math.random() * 26; // 56%~82%: 돌마다 크기가 제각각
+  const jitterX = (Math.random() * 2 - 1) * 14;
+  const jitterY = (Math.random() * 2 - 1) * 14;
+  const rot = (Math.random() * 2 - 1) * 25;
+  wrap.style.width = size + '%';
+  wrap.style.height = size + '%';
+  wrap.style.transform = `translate(-50%, -50%) translate(${jitterX}px, ${jitterY}px) rotate(${rot}deg)`;
+
+  const stoneEl = document.createElement('div');
+  stoneEl.className = 'stone' + (cell.kind === 'fake' ? ' fake' : '');
+  stoneEl.style.borderRadius = randomBlobRadius();
+  wrap.appendChild(stoneEl);
+  cell.el = stoneEl;
+  return wrap;
+}
+
+function renderRiverBoard(){
+  const boardEl = document.getElementById('river-board');
+  boardEl.innerHTML = '';
+  const totalRows = riverGrid.length;
+  boardEl.style.gridTemplateColumns = `repeat(${riverDiff.cols}, 1fr)`;
+  boardEl.style.gridTemplateRows = `repeat(${totalRows}, 1fr)`;
+  // 목표(마지막 행)가 화면 위쪽에, 시작 뚝(0행)이 아래쪽에 오도록 역순으로 그린다.
+  for (let r = totalRows - 1; r >= 0; r--){
+    const rowData = riverGrid[r];
+    for (let c = 0; c < riverDiff.cols; c++){
+      const cellEl = document.createElement('div');
+      cellEl.className = 'river-cell';
+      cellEl.dataset.row = r;
+      cellEl.dataset.col = c;
+      if (rowData.type === 'bank') cellEl.classList.add('bank');
+      else if (rowData.type === 'checkpoint'){
+        cellEl.classList.add('checkpoint');
+        const logEl = document.createElement('div');
+        logEl.className = 'river-log';
+        cellEl.appendChild(logEl);
+      } else {
+        const cell = rowData.cells[c];
+        if (cell){
+          cellEl.appendChild(createRiverStoneEl(cell));
+        }
+      }
+      boardEl.appendChild(cellEl);
+    }
+  }
+}
+
+function riverCellEl(row, col){
+  return document.getElementById('river-board').querySelector(`.river-cell[data-row="${row}"][data-col="${col}"]`);
+}
+function placePlayer(){
+  const cellEl = riverCellEl(riverPlayerRow, riverPlayerCol);
+  if (cellEl) cellEl.appendChild(riverPlayerEl);
+}
+function animatePlayerJump(){
+  riverPlayerEl.classList.add('jumping');
+  setTimeout(() => riverPlayerEl.classList.remove('jumping'), 150);
+}
+function showRiverSplash(){
+  const cellEl = riverCellEl(riverPlayerRow, riverPlayerCol);
+  if (!cellEl) return;
+  const splash = document.createElement('div');
+  splash.className = 'river-splash';
+  cellEl.appendChild(splash);
+  splash.addEventListener('animationend', () => splash.remove());
+}
+
+function updateRiverHeartsUI(){
+  const full = Math.max(0, riverLives);
+  document.getElementById('river-hearts').textContent = '❤'.repeat(full) + '♡'.repeat(Math.max(0, 5 - full));
+}
+function updateRiverLevelBadge(){
+  document.getElementById('river-level-badge').textContent = riverLevelNum + '단계 · ' + (RIVER_LEVELS_META[riverLevelNum - 1] || {}).theme;
+}
+function updateRiverScoreUI(){
+  document.getElementById('river-score-badge').textContent = '점수: ' + riverScore;
+}
+
+function riverTick(){
+  if (!riverRunning) return;
+  const elapsed = performance.now() - riverStartTime;
+  const cycleLen = riverCycleLen();
+  riverGrid.forEach((rowData) => {
+    if (rowData.type !== 'river') return;
+    rowData.cells.forEach((cell) => {
+      if (!cell || cell.kind !== 'real' || !cell.el) return;
+      const t = (elapsed + cell.phase * cycleLen) % cycleLen;
+      const up = t < riverDiff.visibleMs;
+      const warning = up && (riverDiff.visibleMs - t) < 450;
+      cell.el.classList.toggle('sunk', !up);
+      cell.el.classList.toggle('warning', warning);
+    });
+  });
+  // 가만히 서 있는 돌이 그 사이 가라앉으면 발밑이 꺼지며 탈락
+  const rowData = riverGrid[riverPlayerRow];
+  if (rowData && rowData.type === 'river'){
+    const cell = rowData.cells[riverPlayerCol];
+    if (cell && cell.kind === 'real' && !isStoneUp(cell)) riverDie();
+  }
+}
+
+function riverDie(){
+  if (!riverRunning) return;
+  riverRunning = false;
+  showRiverSplash();
+  playBreakSound();
+  riverLives--;
+  updateRiverHeartsUI();
+  setTimeout(() => {
+    if (riverLives <= 0){
+      riverGameOver();
+    } else {
+      riverPlayerRow = riverLastCheckpointRow;
+      riverPlayerCol = Math.floor(riverDiff.cols / 2);
+      placePlayer();
+      riverRunning = true;
+    }
+  }, 500);
+}
+
+// 클리어/게임오버 후 다음 화면으로 넘어가기 전 지연 타이머. 도중에 새 판을 시작하거나
+// 종료 버튼을 누르면 이 타이머가 뒤늦게 발동해 방금 시작한 새 상태를 덮어쓸 수 있으므로
+// 새로운 상태 전환이 일어나는 지점(startRiverRun/startRiverLevel/endRiverRun)마다 반드시 취소한다.
+let riverAdvanceTimerId = null;
+
+function riverGameOver(){
+  clearInterval(riverTickId);
+  showToast('생명을 모두 소진했어요! 1단계부터 다시 도전해요.', 1800);
+  playSound('end');
+  clearTimeout(riverAdvanceTimerId);
+  riverAdvanceTimerId = setTimeout(() => showResultScreen(riverScore), 1200);
+}
+
+function riverLevelClear(){
+  riverRunning = false;
+  clearInterval(riverTickId);
+  const bonus = riverDiff.clearBonus;
+  riverScore += bonus;
+  updateRiverScoreUI();
+  clearTimeout(riverAdvanceTimerId);
+  if (riverLevelNum >= 20){
+    showToast('🎉 전설의 강을 건넜습니다! 모든 단계 클리어!', 2000);
+    playSound('end');
+    riverAdvanceTimerId = setTimeout(() => showResultScreen(riverScore), 1500);
+  } else {
+    showToast(`🎉 ${riverLevelNum}단계 클리어! +${bonus}점`, 1300);
+    riverAdvanceTimerId = setTimeout(() => startRiverLevel(riverLevelNum + 1), 1200);
+  }
+}
+
+const RIVER_DIR_DELTA = { up:[1, 0], down:[-1, 0], left:[0, -1], right:[0, 1] };
+
+function riverMove(dir, dist){
+  if (!riverRunning) return;
+  const delta = RIVER_DIR_DELTA[dir];
+  if (!delta) return;
+  const targetRow = riverPlayerRow + delta[0] * dist;
+  const targetCol = riverPlayerCol + delta[1] * dist;
+  if (targetCol < 0 || targetCol >= riverDiff.cols) return;
+  if (targetRow < 0 || targetRow >= riverGrid.length) return;
+
+  const rowData = riverGrid[targetRow];
+  let safe = false;
+  let gotStoneScore = 0;
+  if (rowData.type === 'bank'){
+    safe = true;
+  } else if (rowData.type === 'checkpoint'){
+    safe = true;
+    riverLastCheckpointRow = targetRow;
+  } else {
+    const cell = rowData.cells[targetCol];
+    if (cell && cell.kind === 'real' && isStoneUp(cell)){
+      safe = true;
+      gotStoneScore = riverDiff.scorePerStone;
+    }
+  }
+
+  if (!safe){
+    riverPlayerRow = targetRow;
+    riverPlayerCol = targetCol;
+    riverDie();
+    return;
+  }
+
+  riverPlayerRow = targetRow;
+  riverPlayerCol = targetCol;
+  animatePlayerJump();
+  placePlayer();
+  if (gotStoneScore){
+    riverScore += gotStoneScore;
+    updateRiverScoreUI();
+  }
+  if (targetRow === riverGrid.length - 1) riverLevelClear();
+}
+
+function startRiverLevel(num){
+  clearTimeout(riverAdvanceTimerId);
+  riverLevelNum = num;
+  riverDiff = riverDifficulty(num);
+  riverGrid = generateRiverGrid(riverDiff);
+  riverLastCheckpointRow = 0;
+  riverPlayerRow = 0;
+  riverPlayerCol = Math.floor(riverDiff.cols / 2);
+  riverStartTime = performance.now();
+  showScreen('screen-river');
+  renderRiverBoard();
+  placePlayer();
+  updateRiverHeartsUI();
+  updateRiverLevelBadge();
+  updateRiverScoreUI();
+  riverRunning = true;
+  clearInterval(riverTickId);
+  riverTickId = setInterval(riverTick, 120);
+}
+
+function startRiverRun(){
+  // 다른 게임과 달리 개울 건너기는 3,2,1 카운트다운 없이 바로 시작한다.
+  clearTimeout(riverAdvanceTimerId);
+  currentMode = 'river';
+  ensureAudioCtx();
+  riverLevelNum = 1;
+  riverLives = 5;
+  riverScore = 0;
+  startRiverLevel(1);
+}
+
+function endRiverRun(){
+  // 레벨 클리어 직후처럼 riverRunning이 이미 false인 전환 구간에서 종료를 눌러도
+  // 대기 중인 다음 단계 타이머를 반드시 취소해야 나중에 화면이 멋대로 넘어가지 않는다.
+  riverRunning = false;
+  clearInterval(riverTickId);
+  clearTimeout(riverAdvanceTimerId);
+  playSound('end');
+  showResultScreen(riverScore);
+}
+
+document.getElementById('btn-river-menu-start').addEventListener('click', startRiverRun);
+document.getElementById('btn-river-menu-start').addEventListener('click', requestGamePointerLock);
+document.getElementById('btn-quit-river').addEventListener('click', endRiverRun);
+
+const RIVER_KEY_MAP = { w:'up', s:'down', a:'left', d:'right', W:'up', S:'down', A:'left', D:'right' };
+document.addEventListener('keydown', (e) => {
+  if (!riverRunning) return;
+  const dir = RIVER_KEY_MAP[e.key];
+  if (!dir) return;
+  e.preventDefault();
+  const now = performance.now();
+  const isDouble = (dir === riverLastKeyDir) && (now - riverLastKeyTime < 350);
+  riverLastKeyDir = dir; riverLastKeyTime = now;
+  riverMove(dir, isDouble ? 2 : 1);
+});
+
+['up', 'down', 'left', 'right'].forEach((dir) => {
+  const btn = document.getElementById('river-btn-' + dir);
+  btn.addEventListener('click', () => {
+    const now = performance.now();
+    const isDouble = (dir === riverLastKeyDir) && (now - riverLastKeyTime < 350);
+    riverLastKeyDir = dir; riverLastKeyTime = now;
+    riverMove(dir, isDouble ? 2 : 1);
+  });
+});
+document.getElementById('river-btn-jump').addEventListener('click', () => {
+  const now = performance.now();
+  const isDouble = now - riverLastJumpTime < 350;
+  riverLastJumpTime = now;
+  riverMove('up', isDouble ? 2 : 1);
 });
 
 })();
